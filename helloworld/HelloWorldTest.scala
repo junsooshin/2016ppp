@@ -4,8 +4,6 @@ import com.cra.figaro.algorithm.sampling._
 
 object HelloWorldTest{
 	def main(args: Array[String]) {
-		// val helloWorldElement = Constant("Hello World!")
-		// val sampleHelloWorld = Importance(1000, helloWorldElement)
 		val helloWorldElement = Select(0.8->"Hello World!", 0.2->"Goodbye World!")
 		val sampleHelloWorld = VariableElimination(helloWorldElement)
 
