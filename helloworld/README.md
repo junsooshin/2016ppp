@@ -4,6 +4,8 @@
 
    Week 1-2 (12.04.2016 - 26.04.2016)
 
+_________
+
 #### What has been done:
 
 - Creating a hello-world project using Scala and Figaro
