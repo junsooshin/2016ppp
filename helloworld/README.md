@@ -1,17 +1,11 @@
-#### README.md
+## README.md
+- by Jun Soo (Derek) Shin
+- Week 1-2 (12.04.2016 - 26.04.2016)
 
-   by Jun Soo (Derek) Shin
-
-   Week 1-2 (12.04.2016 - 26.04.2016)
-
-_________
-
-#### What has been done:
-
+## What has been done:
 - Creating a hello-world project using Scala and Figaro
 
-#### Acknowledgements:
-
+## Acknowledgements:
 - https://www.cra.com/sites/default/files/pdf/Figaro_Quick_Start_Guide.pdf
 
    Provided the step-by-step guide to creating this mini project
