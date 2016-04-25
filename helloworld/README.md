@@ -1,6 +1,8 @@
 #### README.md
-- by Jun Soo (Derek) Shin
-- Week 1-2 (12.04.2016 - 26.04.2016)
+
+   by Jun Soo (Derek) Shin
+
+   Week 1-2 (12.04.2016 - 26.04.2016)
 
 #### What has been done:
 
