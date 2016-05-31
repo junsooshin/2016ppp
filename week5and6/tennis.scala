@@ -1,32 +1,41 @@
 import com.cra.figaro.language._
-import com.cra.figaro.library.compound.If
+import com.cra.figaro.algorithm.sampling.Importance
+import com.cra.figaro.algorithm.factored.VariableElimination
 
 object tennisExercise {
 
-	def tennisMatch(p1ProbServeWin: Double, p2ProbServeWin: Double): Element[Boolean] = {
+	val probP1Serve = 0.6
+	val probP2Serve = 0.5
 
-		def set(p1Serve: Boolean, p1ProbServeWin: Double, p2ProbServeWin: Double,
-			      p1GamesWon: Int, p2GamesWon: Int): Element[Int] = {
-			p1GamesWon = Apply(p1GamesWon, (p1: Int) =>
-				if (p1Serve)
-					if (Flip(p1ProbServeWin) == true) p1 + 1 else p1)
-			// 	} else {
-			// 		p2GamesWon = Apply(p2GamesWon, (p2: Int) =>	p2 = p2 + 1)
-			// 	}
-			// } else {
-			// 	if (Flip(p2ProbServeWin)) p2GamesWon = p2GamesWon + 1; else p1GamesWon = p1GamesWon + 1
-			
-			val setCompleted = Apply(p1GamesWon, p2GamesWon, (p1Games: Int, p2Games: Int) =>
-				((p1GamesWon == 6) || (p2GamesWon == 6)))
-			// If(setCompleted, returns the winner, calls set() again)
-		}
+	val Match: Element[Boolean] = mkMatch(0, 0)
 
-		val p1Serve = Flip(0.5)
-		
+	val Set: Element[Boolean] = for {
+									b <- Flip(0.5)  // chooses the first server
+									w <- mkSet(0, 0, b)
+								} yield w
 
+	def mkMatch(p1Sets: Int, p2Sets: Int): Element[Boolean] = {
+		if (p1Sets == 2) Constant(true)
+		else if (p2Sets == 2) Constant(false)
+		else for {
+			b <- Set
+			w <- if (b) mkMatch(p1Sets + 1, p2Sets)
+			     else mkMatch(p1Sets, p2Sets - 1)
+		} yield w
 	}
 
+	def mkSet(p1Games: Int, p2Games: Int, whoServes: Boolean): Element[Boolean] = {
+		if (p1Games == 6) Constant(true)
+		else if (p2Games == 6) Constant(false)
+		else for {
+				  g <- Flip(if (whoServes) probP1Serve else probP2Serve)
+				  s <- if (g) mkSet(p1Games + 1, p2Games, !whoServes)
+				       else mkSet(p1Games, p2Games + 1, !whoServes)
+			} yield s			
+	}
+
+
 	def main(args: Array[String]) {
-		// println(tennisMatch(0.6, 0.5))
+		println(VariableElimination.probability(Match, true))
 	}
 }
