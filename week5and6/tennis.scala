@@ -30,7 +30,7 @@ object tennisExercise {
 		else if ((p1Games >= 6) && ((p1Games - p2Games) >= 2)) Constant(true)
 		else if ((p2Games >= 6) && ((p2Games - p1Games) >= 2)) Constant(false)
 		else for {
-				  gameResult <- Flip( if (server) probP1Serve else probP2Serve )
+				  gameResult <- mkGame(0, 0, server)
 				  nextGame <- if (gameResult) mkSet(p1Games + 1, p2Games, setNum, !server)
 				              else mkSet(p1Games, p2Games + 1, setNum, !server)
 			} yield nextGame			
@@ -42,19 +42,37 @@ object tennisExercise {
 	 *       the players alternate serves for 2 points
 	 */
 	def tiebreak(p1Points: Int, p2Points: Int, server: Boolean): Element[Boolean] = {
-		// if (((p1Points + p2Points) % 2) == 1) server = !server
+		val nextServer = if (((p1Points + p2Points) % 2) == 1) !server
+							 else server
+		// println(">>TIEBREAK<< " + nextServer + " serving")
 
-		if ((p1Points >= 7) && ((p1Points - p2Points) >= 2)) Constant(true)
+		if ((p1Points >= 7) && ((p1Points - p2Points) >= 2)) {
+			// println("hi")
+			Constant(true)}  
 		else if ((p2Points >= 7) && ((p2Points - p1Points) >= 2)) Constant(false)
 		else for {
-			server <- (((p1Points + p2Points) % 2) == 1) !server
-			pointResult <- Flip( if (server) probP1Serve else probP2Serve )
-			nextPoint <- if (pointResult) tiebreak(p1Points + 1, p2Points, server)
-					     else tiebreak(p1Points, p2Points + 1, server)
-		} yield nextPoint
+				pointResult <- Flip( if (nextServer) probP1Serve else probP2Serve )
+				// dummy = println("hello")
+				nextPoint <- if (pointResult) tiebreak(p1Points + 1, p2Points, nextServer)
+						     else tiebreak(p1Points, p2Points + 1, nextServer)
+			} yield nextPoint
 	}
 
 	def main(args: Array[String]) {
 		println("Win Probability of P1: " + Importance.probability(Match, true))
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
