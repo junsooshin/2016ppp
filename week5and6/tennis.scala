@@ -10,15 +10,10 @@ object tennisExercise {
 	val Match: Element[Boolean] = mkMatch(0, 0)  // starts the match
 
 	def mkMatch(p1Sets: Int, p2Sets: Int): Element[Boolean] = {
-		// if ((p1Sets == 0) && (p2Sets == 0)) println("NEW MATCH")
 		val setNum = p1Sets + p2Sets + 1
 		if (p1Sets == 3) {
-			// println("P1 Wins " + p1Sets + "-" + p2Sets)
-			// println("##############################")
 			Constant(true)}
 		else if (p2Sets == 3) {
-			// println("P2 Wins " + p1Sets + "-" + p2Sets)
-			// println("##############################")
 			Constant(false)}
 		else for {
 			server <- Flip(0.5)  // this might not alternate server on a new set
@@ -31,10 +26,8 @@ object tennisExercise {
 	def mkSet(p1Games: Int, p2Games: Int, setNum: Int, server: Boolean): Element[Boolean] = {
 		if ((setNum != 5) && (p1Games == 6) && (p2Games == 6)) tiebreak(0, 0, setNum, server)
 		else if ((p1Games >= 6) && ((p1Games - p2Games) >= 2)) {
-			// println("Set " + setNum + " Completed " + p1Games + ":" + p2Games)
 			Constant(true)}
 		else if ((p2Games >= 6) && ((p2Games - p1Games) >= 2)) {
-			// println("Set " + setNum + " Completed " + p1Games + ":" + p2Games)
 			Constant(false)}
 		else for {
 				  gameResult <- mkGame(0, 0, server)
@@ -52,10 +45,8 @@ object tennisExercise {
 		val nextServer = if (((p1Points + p2Points) % 2) == 1) !server
 						 else server
 		if ((p1Points >= 7) && ((p1Points - p2Points) >= 2)) {
-			// println("Set " + setNum + " Completed 7:6 (" + p1Points + ":" + p2Points + ")")
 			Constant(true)}  
 		else if ((p2Points >= 7) && ((p2Points - p1Points) >= 2)) {
-			// println("Set " + setNum + " Completed 6:7 (" + p1Points + ":" + p2Points + ")")
 			Constant(false)}
 		else for {
 				pointResult <- Flip( if (nextServer) probP1Serve else probP2Serve )
@@ -66,10 +57,8 @@ object tennisExercise {
 
 	def mkGame(p1Points: Int, p2Points: Int, server: Boolean): Element[Boolean] = {
 		if ((p1Points >= 4) && ((p1Points - p2Points) >= 2)) {
-			// println("  " + p1Points + ":" + p2Points)
 			Constant(true)}
 		else if ((p2Points >= 4) && ((p2Points - p1Points) >= 2)) {
-			// println("  " + p1Points + ":" + p2Points)
 			Constant(false)}
 		else for {
 			pointResult <- Flip( if (server) probP1Serve else probP2Serve )
@@ -79,7 +68,10 @@ object tennisExercise {
 	}
 
 	def main(args: Array[String]) {
-		println("Win Probability of P1: " + Importance.probability(Match, true))
+		val algorithm = Importance(500, Match)
+		algorithm.start()
+		println("Win Probability of P1: " + algorithm.probability(Match, true))
+		algorithm.kill()
 	}
 }
 
