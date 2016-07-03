@@ -1,8 +1,9 @@
-// title: chapter2test.scala
-// name: Jun Soo Shin
-// date: 4/27/2016 - 5/10/2016
-// note: The exercises 4, 5, and 6 from the chapter 2 of the book
-//       "Practical Probabilistic Programming" by Avi Pfeffer.
+/* title: chapter2test.scala
+ * name: Jun Soo Shin
+ * date: 4/27/2016 - 5/10/2016
+ * note: The exercises 4, 5, and 6 from the chapter 2 (A quick Figaro tutorial)
+ *		 of the book "Practical Probabilistic Programming" by Avi Pfeffer.
+ */
 
 import com.cra.figaro.language._
 import com.cra.figaro.algorithm.factored.VariableElimination

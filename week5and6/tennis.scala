@@ -1,3 +1,10 @@
+/* title: firm.scala
+ * name: Jun Soo Shin
+ * date: 7 June 2016
+ * note: exercise in chapter 5 (Modeling dependencies with Bayesian and Markov
+ *       networks) of the Practical Probabilistic Programming book
+ */
+
 import com.cra.figaro.language._
 import com.cra.figaro.algorithm.sampling.Importance
 import com.cra.figaro.algorithm.factored.VariableElimination

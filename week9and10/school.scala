@@ -1,3 +1,10 @@
+/* title: school.scala
+ * name: Jun Soo Shin
+ * date: 21 June 2016
+ * note: exercise in chapter 7 (Object-oriented probabilistic modeling)
+ *		 of the Practical Probabilistic Programming book
+ */
+
 import com.cra.figaro.language._
 import com.cra.figaro.library.atomic.continuous.Uniform
 import com.cra.figaro.algorithm.sampling.Importance
