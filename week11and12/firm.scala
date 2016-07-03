@@ -1,7 +1,8 @@
 /* title: firm.scala
  * name: Jun Soo Shin
  * date: 5 July 2016
- * note: exercise in chapter 8 of Practical Probabilistic Programming book
+ * note: exercise in chapter 8 (Modeling dynamic systems) of the Practical 
+ *       Probabilistic Programming book
  */
 
 import com.cra.figaro.language._
@@ -19,9 +20,9 @@ object firmExercise {
 	def transition(capital: Double, investment: Double): 
 				   (Element[(Double, Double, Double)]) = {
 
-		val newProfit = Select(0.7 -> investment * 1.1,
+		val newProfit = Select(0.7 -> investment * 1.15,
 							   0.1 -> investment,
-							   0.2 -> investment * 0.9)
+							   0.2 -> investment * 0.95)
 
 		val newInvestment: Element[Double] = Constant(capital * investmentFraction)
 
@@ -46,7 +47,7 @@ object firmExercise {
 	def main(args: Array[String]) {
 		val alg = ParticleFilter(initial, nextUniverse, 10000)
 		alg.start()
-		for { time <- 1 to 10 } {
+		for { time <- 1 to 20 } {
 			val evidence = List()
 			alg.advanceTime(evidence)
 			print("Time " + time + ": ")
