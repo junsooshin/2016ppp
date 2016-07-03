@@ -5,49 +5,53 @@
  */
 
 import com.cra.figaro.language._
-import com.cra.figaro.library.compound.{If, ^^}
+import com.cra.figaro.library.compound.{^^}
 import com.cra.figaro.algorithm.filtering.ParticleFilter
 
 object firmExercise {
-
+	val investmentFraction = 0.1
 	val initial = Universe.createNew()
-	Constant(100000)("capital", initial)
-	Constant(0)("investment", initial)
+	Constant(100000.0)("capital", initial)
+	Constant(0.0)("investment", initial)
 
 	// given the previous capital and previous investment,
 	// returns the new investment, new profit, and new capital in a tuple
-	def transition(capital: Element[Double], investment: Double): 
+	def transition(capital: Double, investment: Double): 
 				   (Element[(Double, Double, Double)]) = {
 
 		val newProfit = Select(0.7 -> investment * 1.1,
 							   0.1 -> investment,
 							   0.2 -> investment * 0.9)
 
-		val newInvestment = Apply(capital, (c: Double)
-								  => c / 10.0)
+		val newInvestment: Element[Double] = Constant(capital * investmentFraction)
 
-		val newCapital = Apply(capital, newProfit, newInvestment,
-							   (c: Double, p: Double, i: Double)
-							   => c + p - i)
+		val newCapital = Apply(newProfit, newInvestment,
+							   (p: Double, i: Double)
+							   => capital + p - i)
 
 		^^(newCapital, newInvestment, newProfit)
 	}
 
 	def nextUniverse(previous: Universe): Universe = {
 		val next = Universe.createNew()
-		val prevCapital = previous.get[Element[Double]]("capital")
+		val prevCapital = previous.get[Double]("capital")
 		val prevInvestment = previous.get[Double]("investment")
 		val newState = Chain(prevCapital, prevInvestment, transition _)
-	    Apply(newState, (s: (Double, Double, Double)) => s._1)("capital", next)
-	    Apply(newState, (s: (Double, Double, Double)) => s._2)("investment", next)
-	    Apply(newState, (s: (Double, Double, Double)) => s._3)("profit", next)
+		Apply(newState, (s: (Double, Double, Double)) => s._1)("capital", next)
+		Apply(newState, (s: (Double, Double, Double)) => s._2)("investment", next)
+		Apply(newState, (s: (Double, Double, Double)) => s._3)("profit", next)
 		next
 	}
 
 	def main(args: Array[String]) {
-		// val alg = ParticleFilter(initial, nextUniverse, 10000)
-		// alg.start()
-
-
+		val alg = ParticleFilter(initial, nextUniverse, 10000)
+		alg.start()
+		for { time <- 1 to 10 } {
+			val evidence = List()
+			alg.advanceTime(evidence)
+			print("Time " + time + ": ")
+			println("expected capital = " + alg.currentExpectation("capital", (c: Double) => c))
+		}
+		alg.stop()
 	}
 }
