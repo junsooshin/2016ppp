@@ -48,7 +48,7 @@ object firmExercise {
 		val alg = ParticleFilter(initial, nextUniverse, 10000)
 		alg.start()
 		for { time <- 1 to 20 } {
-			val evidence = List()
+			val evidence = List()  // no evidence
 			alg.advanceTime(evidence)
 			print("Time " + time + ": ")
 			println("expected capital = " + alg.currentExpectation("capital", (c: Double) => c))
