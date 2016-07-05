@@ -10,7 +10,7 @@ import com.cra.figaro.library.compound._
 import com.cra.figaro.algorithm.factored.VariableElimination
 
 object hiddenMarkov {
-	val length = 1000
+	val length = 100
 
 	val confident:  Array[Element[Boolean]] = Array.fill(length)(Constant(false))
 	val possession: Array[Element[Boolean]] = Array.fill(length)(Constant(false))
@@ -41,13 +41,13 @@ object hiddenMarkov {
 	    val timeBefore = System.currentTimeMillis()
 	    alg.start()
 	    val timeAfter = System.currentTimeMillis()
-	    println("probability: " + alg.probability(confident(length - 1), true))
+	    println("probability that we're confident at the last step: " + alg.probability(confident(length - 1), true))
 	    (timeAfter - timeBefore) / 1000.0
 	}
 
 	def main(args: Array[String]) {
 		connect()
 		observe()
-		println(length + ": " + timer())
+		println(length + " steps: " + timer() + " s")
 	}
 }
