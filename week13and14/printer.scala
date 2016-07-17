@@ -1,12 +1,14 @@
-/* title: printer.scala
- * name: Jun Soo Shin
- * date: 19 July 2016
- * note: Exercises 1-3 in chapter 12 (Solving other inference tasks) of the 
- *       Practical Probabilistic Programming book by Avi Pfeffer
+/*  title: printer.scala
+ *  name: Jun Soo Shin
+ *  date: 19 July 2016
+ *  note: Exercises 1-3 in chapter 12 (Solving other inference tasks) of the 
+ *        Practical Probabilistic Programming book by Avi Pfeffer
  *
- *       Querying joint probability of multiple varibles, computing the most 
- *       likely values of variables, and computing the probability of an 
- *       observed evidence are the main topics in this chapter.
+ *        Querying joint probability of multiple varibles, computing the most 
+ *        likely values of variables, and computing the probability of an 
+ *        observed evidence are the main topics in this chapter.
+ *
+ *        The code for the printer model is provided by the book.
  */
 
 import com.cra.figaro.language._
@@ -75,7 +77,74 @@ object PrinterProblem {
                 else if (pages == 'some || !quickly || !quality) 'poor
                 else 'excellent)
 
+    def part1() {
+        val pair = ^^(printerState, networkState)
+        printResultSummary.observe('poor)
+        val ve = VariableElimination(pair)
+        ve.start()
+
+        println()
+        println("Given that a print result was poor, ")
+        println()
+        println("Probability printer state is good and network state is up: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'good && pair._2 == 'up))
+        println("Probability printer state is good and network state is intermittent: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'good && pair._2 == 'intermittent))
+        println("Probability printer state is good and network state is down: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'good && pair._2 == 'down))
+        println()
+        println("Probability printer state is poor and network state is up: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'poor && pair._2 == 'up))
+        println("Probability printer state is poor and network state is intermittent: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'poor && pair._2 == 'intermittent))
+        println("Probability printer state is poor and network state is down: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'poor && pair._2 == 'down))
+        println()
+        println("Probability printer state is out and network state is up: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'out && pair._2 == 'up))
+        println("Probability printer state is out and network state is intermittent: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'out && pair._2 == 'intermittent))
+        println("Probability printer state is out and network state is down: " 
+                + ve.probability(pair, 
+                    (pair: (Symbol, Symbol)) => pair._1 == 'out && pair._2 == 'down))
+        println()
+
+        ve.kill()
+    }
+    /*  part 1 answer:
+            When printer is out and/or network is down, print result is none.
+            Thus the combinations consisting of those values of the variables have 0 probability.
+            
+
+    */
+
     def main(args: Array[String]) {
-        
+        part1()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
