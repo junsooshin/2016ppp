@@ -15,8 +15,16 @@ import com.cra.figaro.language._
 import com.cra.figaro.library.compound._
 import com.cra.figaro.algorithm.factored.VariableElimination
 import com.cra.figaro.algorithm.factored.MPEVariableElimination
+import com.cra.figaro.algorithm.sampling.ProbEvidenceSampler
+
 
 object PrinterProblem {
+
+
+    /**************************************************************************
+    *                               Printer model                             *
+    **************************************************************************/
+
 
     // variables that make up the printer state
     val printerPowerButtonOn = Flip(0.95)
@@ -78,10 +86,18 @@ object PrinterProblem {
                 else if (pages == 'some || !quickly || !quality) 'poor
                 else 'excellent)
 
-    /*  calculates joint distribution of printer state and network state, given
-        a poor printing result.
+
+    /**************************************************************************
+    *                       Answers to the Questions                          *
+    **************************************************************************/
+
+
+    /*  Part 1
+
+        This function calculates joint distribution of printer state and network 
+        state, given a poor print result.
       
-        part 1 answer:
+        Answer:
             When printer is out and/or network is down, the number of printed 
             pages is zero, and print result is none.
             Thus, the combinations consisting of those values of the variables 
@@ -147,16 +163,13 @@ object PrinterProblem {
         printResultSummary.unobserve()
     }
 
-    /*  diagnosis steps:
-            1. Observe initial symptoms as evidence in the model.
-            2. Compute the MPE to determinte the most likely staste of the system.
-            3. Check whether the fault or faults identified in step 2 are actual
-               faults, and if so, attempt to fix them.
-            4. Check to see if the fix solved the problem.
-            5. If the fix didn't solve the problem, add additional evidence, and
-               return to step 2.
+    /*  Part 2
 
-        part 2 answer:
+        This function follows the diagnostic steps, which include finding the
+        most likely values of the variables, in order to fix the poor print 
+        result.
+
+        Answer:
             After observing that a printing result was poor, the most likely
             problem was user command. If we observed that the user command was
             correct, the next most likely problem was paper flow. And if we
@@ -216,9 +229,29 @@ object PrinterProblem {
         MPEve.kill()
     }
 
+    /*  Part 3
+
+        This function computes the probability of the evidence that the print
+        result is poor.
+
+        Answer: ~ 0.423
+    */
+    def part3() {
+        val printResult =
+            Apply(numPrintedPages, printsQuickly, goodPrintQuality,
+                (pages: Symbol, quickly: Boolean, quality: Boolean) =>
+                    if (pages == 'zero) 'none
+                    else if (pages == 'some || !quickly || !quality) 'poor
+                    else 'excellent)("printResult", Universe.universe)
+        val evidence = List(NamedEvidence("printResult", Observation('poor)))
+        println("Probability of the evidence that the print result is poor: " +
+                ProbEvidenceSampler.computeProbEvidence(100000, evidence))
+    }
+
     def main(args: Array[String]) {
         // part1()
-        part2()
+        // part2()
+        part3()
     }
 }
 
