@@ -14,6 +14,7 @@
 import com.cra.figaro.language._
 import com.cra.figaro.library.compound._
 import com.cra.figaro.algorithm.factored.VariableElimination
+import com.cra.figaro.algorithm.factored.MPEVariableElimination
 
 object PrinterProblem {
 
@@ -77,6 +78,21 @@ object PrinterProblem {
                 else if (pages == 'some || !quickly || !quality) 'poor
                 else 'excellent)
 
+    /*  calculates joint distribution of printer state and network state, given
+        a poor printing result.
+      
+        part 1 answer:
+            When printer is out and/or network is down, the number of printed 
+            pages is zero, and print result is none.
+            Thus, the combinations consisting of those values of the variables 
+            have 0 probability.
+
+            The printer state is about 2 times more likely to be poor than good,
+            and the network state is about 3 times more likely to be up than
+            intermittent. The probabilities rise as the printer state gets worse
+            and the network state gets better. Therefore, these two variables are 
+            anti-correlated.
+    */ 
     def part1() {
         val pair = ^^(printerState, networkState)
         printResultSummary.observe('poor)
@@ -84,7 +100,7 @@ object PrinterProblem {
         ve.start()
 
         println()
-        println("Given that a print result was poor, ")
+        println("Given that a print result was poor,")
         println()
         println("Probability printer state is good and network state is up: " 
                 + ve.probability(pair, 
@@ -117,17 +133,92 @@ object PrinterProblem {
                     (pair: (Symbol, Symbol)) => pair._1 == 'out && pair._2 == 'down))
         println()
 
-        ve.kill()
-    }
-    /*  part 1 answer:
-            When printer is out and/or network is down, print result is none.
-            Thus the combinations consisting of those values of the variables have 0 probability.
-            
+        println("Probability printer state is good: " + ve.probability(pair,
+            (pair: (Symbol, Symbol)) => pair._1 == 'good))
+        println("Probability printer state is poor: " + ve.probability(pair,
+            (pair: (Symbol, Symbol)) => pair._1 == 'poor))
+        println("Probability network state is up: " + ve.probability(pair,
+            (pair: (Symbol, Symbol)) => pair._2 == 'up))
+        println("Probability network state is intermittent: " + ve.probability(pair,
+            (pair: (Symbol, Symbol)) => pair._2 == 'intermittent))
+        println()
 
+        ve.kill()
+        printResultSummary.unobserve()
+    }
+
+    /*  diagnosis steps:
+            1. Observe initial symptoms as evidence in the model.
+            2. Compute the MPE to determinte the most likely staste of the system.
+            3. Check whether the fault or faults identified in step 2 are actual
+               faults, and if so, attempt to fix them.
+            4. Check to see if the fix solved the problem.
+            5. If the fix didn't solve the problem, add additional evidence, and
+               return to step 2.
+
+        part 2 answer:
+            After observing that a printing result was poor, the most likely
+            problem was user command. If we observed that the user command was
+            correct, the next most likely problem was paper flow. And if we
+            observed that the paper flow was smooth, the next most likely
+            problem was toner level.
+
+            Since we have already observed that the print result was poor, 
+            we will never fix the problem here. But if the print result is 
+            poor, we should try to fix the user command and then the paper 
+            flow, and then the toner level, and so on.
     */
+    def part2() {
+        printResultSummary.observe('poor)
+        val MPEve = MPEVariableElimination()
+        MPEve.start()
+        println()
+        println("Given that a print result was poor,")
+        println()
+        println("Printer power button on: " + MPEve.mostLikelyValue(printerPowerButtonOn)) 
+        println("Toner level: " + MPEve.mostLikelyValue(tonerLevel)) 
+        println("Paper flow: " + MPEve.mostLikelyValue(paperFlow)) 
+        println("Software state: " + MPEve.mostLikelyValue(softwareState)) 
+        println("Network state: " + MPEve.mostLikelyValue(networkState)) 
+        println("User command correct: " + MPEve.mostLikelyValue(userCommandCorrect))
+        println()
+        MPEve.kill()
+
+        userCommandCorrect.observe(true)
+
+        MPEve.start()
+        println()
+        println("Given that a print result was poor, and user command was correct,")
+        println()
+        println("Printer power button on: " + MPEve.mostLikelyValue(printerPowerButtonOn)) 
+        println("Toner level: " + MPEve.mostLikelyValue(tonerLevel)) 
+        println("Paper flow: " + MPEve.mostLikelyValue(paperFlow)) 
+        println("Software state: " + MPEve.mostLikelyValue(softwareState)) 
+        println("Network state: " + MPEve.mostLikelyValue(networkState)) 
+        println("User command correct: " + MPEve.mostLikelyValue(userCommandCorrect))
+        println()
+        MPEve.kill()
+
+        paperFlow.observe('smooth)
+
+        MPEve.start()
+        println()
+        println("Given that a print result was poor, user command was correct, " 
+                + "and paper flow is smooth,")
+        println()
+        println("Printer power button on: " + MPEve.mostLikelyValue(printerPowerButtonOn)) 
+        println("Toner level: " + MPEve.mostLikelyValue(tonerLevel)) 
+        println("Paper flow: " + MPEve.mostLikelyValue(paperFlow)) 
+        println("Software state: " + MPEve.mostLikelyValue(softwareState)) 
+        println("Network state: " + MPEve.mostLikelyValue(networkState)) 
+        println("User command correct: " + MPEve.mostLikelyValue(userCommandCorrect))
+        println()
+        MPEve.kill()
+    }
 
     def main(args: Array[String]) {
-        part1()
+        // part1()
+        part2()
     }
 }
 
