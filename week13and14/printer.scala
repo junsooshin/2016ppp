@@ -229,6 +229,9 @@ object PrinterProblem {
         println("User command correct: " + MPEve.mostLikelyValue(userCommandCorrect))
         println()
         MPEve.kill()
+        printResultSummary.unobserve()
+        userCommandCorrect.unobserve()
+        paperFlow.unobserve()
     }
 
     /*  Part 3
