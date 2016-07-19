@@ -116,6 +116,7 @@ object PrinterProblem {
         ve.start()
 
         println()
+        println("### PART 1 ###")
         println("Given that a print result was poor,")
         println()
         println("Probability printer state is good and network state is up: " 
@@ -186,6 +187,7 @@ object PrinterProblem {
         val MPEve = MPEVariableElimination()
         MPEve.start()
         println()
+        println("### PART 2 ###")
         println("Given that a print result was poor,")
         println()
         println("Printer power button on: " + MPEve.mostLikelyValue(printerPowerButtonOn)) 
@@ -244,31 +246,16 @@ object PrinterProblem {
                     else if (pages == 'some || !quickly || !quality) 'poor
                     else 'excellent)("printResult", Universe.universe)
         val evidence = List(NamedEvidence("printResult", Observation('poor)))
-        println("Probability of the evidence that the print result is poor: " +
+        println()
+        println("### PART 3 ###")
+        println("Probability of the evidence that a print result is poor: " +
                 ProbEvidenceSampler.computeProbEvidence(100000, evidence))
+        println()
     }
 
     def main(args: Array[String]) {
-        // part1()
-        // part2()
+        part1()
+        part2()
         part3()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
