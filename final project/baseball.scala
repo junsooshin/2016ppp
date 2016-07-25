@@ -1,45 +1,77 @@
+/*	title: baseball.scala
+ *	name: Jun Soo Shin
+ *	date: 2 August 2016
+ *	note: Final project for the Probabilistic Programming Praktikum class.
+ *
+ *		  
+ */
 
 import scala.collection.mutable.ArrayBuffer
 import com.cra.figaro.language._
 import com.cra.figaro.library.compound._
+import java.io._
 
 object Baseball {
 
-	def using[A <: { def close(): Unit }, B](resource: A)(f: A => B): B =
-        try {
-            f(resource)
-        } finally {
-            resource.close()
-        }
+	//	This function reads in the csv files and creates 2D arrays of strings
+	// 	that contain the batting, pitching, and league data
+	def createDatabases() {
 
-	def main(args: Array[String]) {
+		// helper function
+		def using[A <: { def close(): Unit }, B](resource: A)(f: A => B): B =
+	        try {
+	            f(resource)
+	        } finally {
+	            resource.close()
+	        }
 
-	    // each row is an array of strings (the columns in the csv file)
-	    val rows = ArrayBuffer[Array[String]]()
+	    // each row is an array of strings
+	    val batting = ArrayBuffer[Array[String]]()
+	    val pitching = ArrayBuffer[Array[String]]()
+	    val league = ArrayBuffer[Array[String]]()
 
-	    // (1) read the csv data
-	    using(io.Source.fromFile("Batting.csv")) { source =>
+	    // read the batter data
+	    using(io.Source.fromFile("FanGraphsBatting2015.csv")) { source =>
 	        for (line <- source.getLines) {
-	            rows += line.split(",").map(_.trim)
+	        	// split by commas, trim blank spaces left and right,
+	        	// and remove blank spaces around the strings
+	            batting += line.split(",").map(_.trim).map(_.replace("\"", ""))
 	        }
 	    }
 
-	    // println(rows.length)
-	    // println(rows(0).length)
-	    // println(rows(1)(17))
-		// println(rows(1).indexWhere( _ == "abercda01"))
+	    // read the pitcher data
+	    using(io.Source.fromFile("BaseballReferencePitching2015.csv")) { source =>
+	        for (line <- source.getLines) {
+	        	// here, we remove the asterisks next to the player names
+	            pitching += line.split(",").map(_.trim).map(_.replace("*", ""))
+	        }
+	    }
 
+	    // read the league data
+	    using(io.Source.fromFile("FanGraphsLeague2015.csv")) { source =>
+	        for (line <- source.getLines) {
+	            league += line.split(",").map(_.trim).map(_.replace("\"", ""))
+	        }
+	    }
 
-	    // for (numRow <- 0 until rows.length) {
-	    // 	println()
-	    // 	for (numCol <- 0 until rows(0).length) {
-	    // 		print(rows(numRow)(numCol)+",")
-	    // 	}
-	    // }
+	   	// print and write the data to check if everything went okay
+	    // val pw = new PrintWriter(new File("hello.txt"))
+	    for (numRow <- 0 until pitching.length) {
+	    	println()
+	    	// pw.write("\n")
+	    	for (numCol <- 0 until pitching(0).length) {
+	    		print(pitching(numRow)(numCol) + ",")
+	    		// pw.write("\"" + batting(numRow)(numCol) + "\"" + ",")
+	    	}
+	    }
+	    println()
+	    println()
+		// pw.close()
+	}
 
-	    // // (2) print the results
-	    // for (row <- rows) {
-	    //     println(s"${row(0)},${row(1)},${row(2)},${row(3)},")
-	    // }
+	def main(args: Array[String]) {
+		createDatabases()
 	}
 }
+
+
