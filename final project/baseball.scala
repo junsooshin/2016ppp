@@ -26,6 +26,7 @@ object BaseballSimulator {
 	val batters2 = Array.fill(9)(new player)
 	val pitcher1 = new player
 	val pitcher2 = new player
+	val league = new player
 
 	class player {
 		var name: String = null
@@ -207,8 +208,8 @@ object BaseballSimulator {
 		}
 	}
 
-	/*	This function initializes the probabilities in the batter and pitcher 
-	 *	classes
+	/*	This function initializes the probabilities in the batter, pitcher,
+	 *	and league classes
 	 */
 	def initializeProbs() {
 		for (batter1 <- batters1) {
@@ -266,6 +267,31 @@ object BaseballSimulator {
 		pitcher2.pSF  = pitchingData(pitcher2.rowID)(26).toDouble / plateApp4
 		pitcher2.pSH  = pitchingData(pitcher2.rowID)(25).toDouble / plateApp4
 		pitcher2.pNO  = pitchingData(pitcher2.rowID)(29).toDouble / plateApp4
+
+		val plateApp5 = leagueData(1)(3).toDouble
+		league.p1B  = leagueData(1)(5).toDouble  / plateApp5
+		league.p2B  = leagueData(1)(6).toDouble / plateApp5
+		league.p3B  = leagueData(1)(7).toDouble / plateApp5
+		league.pHR  = leagueData(1)(8).toDouble / plateApp5
+		league.pBB  = leagueData(1)(11).toDouble / plateApp5
+		league.pIBB = leagueData(1)(12).toDouble / plateApp5
+		league.pHBP = leagueData(1)(14).toDouble / plateApp5
+		league.pSO  = leagueData(1)(13).toDouble / plateApp5
+		league.pSF  = leagueData(1)(15).toDouble / plateApp5
+		league.pSH  = leagueData(1)(16).toDouble / plateApp5
+		league.pNO  = leagueData(1)(21).toDouble / plateApp5
+
+		println((leagueData(1)(5).toDouble  / plateApp5) +
+		(leagueData(1)(6).toDouble / plateApp5) +
+		(leagueData(1)(7).toDouble / plateApp5) +
+		(leagueData(1)(8).toDouble / plateApp5) +
+		(leagueData(1)(11).toDouble / plateApp5) +
+		(leagueData(1)(12).toDouble / plateApp5) +
+		(leagueData(1)(14).toDouble / plateApp5) +
+		(leagueData(1)(13).toDouble / plateApp5) +
+		(leagueData(1)(15).toDouble / plateApp5) +
+		(leagueData(1)(16).toDouble / plateApp5) +
+		(leagueData(1)(21).toDouble / plateApp5))
 	}
 
 	def main(args: Array[String]) {
