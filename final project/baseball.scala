@@ -31,17 +31,32 @@ object BaseballSimulator {
 	class player {
 		var name: String = null
 		var rowID: Int = 0
+
 		var p1B: Double = 0
 		var p2B: Double = 0
 		var p3B: Double = 0
 		var pHR: Double = 0
-		var pBB: Double = 0
-		var pIBB: Double = 0
-		var pHBP: Double = 0
+		var pTW: Double = 0
 		var pSO: Double = 0
-		var pSF: Double = 0
-		var pSH: Double = 0
-		var pNO: Double = 0
+		var pBO: Double = 0
+
+		var tPA: Int = 0
+		var t1B: Int = 0
+		var t2B: Int = 0
+		var t3B: Int = 0
+		var tHR: Int = 0
+		var tTW: Int = 0
+		var tSO: Int = 0
+		var tBO: Int = 0
+	}
+
+	class scoreboard {
+		var offense = 1
+		var score1 = 0
+		var score2 = 0
+		var inning = 0.0
+		var outs = 0
+		var bases = "000"
 	}
 
 	/* 	This function checks for the right number of arguments given from the
@@ -212,19 +227,25 @@ object BaseballSimulator {
 	 *	and league classes
 	 */
 	def initializeProbs() {
+		println(batters1(0).rowID)
+
 		for (batter1 <- batters1) {
 			val plateApp1 = battingData(batter1.rowID)(4).toDouble
 			batter1.p1B  = battingData(batter1.rowID)(6).toDouble  / plateApp1
 			batter1.p2B  = battingData(batter1.rowID)(7).toDouble  / plateApp1
 			batter1.p3B  = battingData(batter1.rowID)(8).toDouble  / plateApp1
 			batter1.pHR  = battingData(batter1.rowID)(9).toDouble  / plateApp1
-			batter1.pBB  = battingData(batter1.rowID)(12).toDouble / plateApp1
-			batter1.pIBB = battingData(batter1.rowID)(13).toDouble / plateApp1
-			batter1.pHBP = battingData(batter1.rowID)(15).toDouble / plateApp1
+			batter1.pTW  = battingData(batter1.rowID)(24).toDouble / plateApp1
 			batter1.pSO  = battingData(batter1.rowID)(14).toDouble / plateApp1
-			batter1.pSF  = battingData(batter1.rowID)(16).toDouble / plateApp1
-			batter1.pSH  = battingData(batter1.rowID)(17).toDouble / plateApp1
-			batter1.pNO  = battingData(batter1.rowID)(23).toDouble / plateApp1
+			batter1.pBO  = battingData(batter1.rowID)(23).toDouble / plateApp1
+
+			// println((battingData(batter1.rowID)(6).toDouble  / plateApp1) +
+			// (battingData(batter1.rowID)(7).toDouble  / plateApp1) +
+			// (battingData(batter1.rowID)(8).toDouble  / plateApp1) +
+			// (battingData(batter1.rowID)(9).toDouble  / plateApp1) +
+			// (battingData(batter1.rowID)(24).toDouble / plateApp1) +
+			// (battingData(batter1.rowID)(14).toDouble / plateApp1) +
+			// (battingData(batter1.rowID)(23).toDouble / plateApp1))
 		}
 
 		for (batter2 <- batters2) {
@@ -233,13 +254,9 @@ object BaseballSimulator {
 			batter2.p2B  = battingData(batter2.rowID)(7).toDouble  / plateApp2
 			batter2.p3B  = battingData(batter2.rowID)(8).toDouble  / plateApp2
 			batter2.pHR  = battingData(batter2.rowID)(9).toDouble  / plateApp2
-			batter2.pBB  = battingData(batter2.rowID)(12).toDouble / plateApp2
-			batter2.pIBB = battingData(batter2.rowID)(13).toDouble / plateApp2
-			batter2.pHBP = battingData(batter2.rowID)(15).toDouble / plateApp2
+			batter2.pTW  = battingData(batter2.rowID)(24).toDouble / plateApp2
 			batter2.pSO  = battingData(batter2.rowID)(14).toDouble / plateApp2
-			batter2.pSF  = battingData(batter2.rowID)(16).toDouble / plateApp2
-			batter2.pSH  = battingData(batter2.rowID)(17).toDouble / plateApp2
-			batter2.pNO  = battingData(batter2.rowID)(23).toDouble / plateApp2
+			batter2.pBO  = battingData(batter2.rowID)(23).toDouble / plateApp2
 		}
 
 		val plateApp3 = pitchingData(pitcher1.rowID)(5).toDouble
@@ -247,51 +264,96 @@ object BaseballSimulator {
 		pitcher1.p2B  = pitchingData(pitcher1.rowID)(10).toDouble / plateApp3
 		pitcher1.p3B  = pitchingData(pitcher1.rowID)(11).toDouble / plateApp3
 		pitcher1.pHR  = pitchingData(pitcher1.rowID)(12).toDouble / plateApp3
-		pitcher1.pBB  = pitchingData(pitcher1.rowID)(15).toDouble / plateApp3
-		pitcher1.pIBB = pitchingData(pitcher1.rowID)(27).toDouble / plateApp3
-		pitcher1.pHBP = pitchingData(pitcher1.rowID)(24).toDouble / plateApp3
+		pitcher1.pTW  = pitchingData(pitcher1.rowID)(30).toDouble / plateApp3
 		pitcher1.pSO  = pitchingData(pitcher1.rowID)(16).toDouble / plateApp3
-		pitcher1.pSF  = pitchingData(pitcher1.rowID)(26).toDouble / plateApp3
-		pitcher1.pSH  = pitchingData(pitcher1.rowID)(25).toDouble / plateApp3
-		pitcher1.pNO  = pitchingData(pitcher1.rowID)(29).toDouble / plateApp3
+		pitcher1.pBO  = pitchingData(pitcher1.rowID)(29).toDouble / plateApp3
 
 		val plateApp4 = pitchingData(pitcher2.rowID)(5).toDouble
 		pitcher2.p1B  = pitchingData(pitcher2.rowID)(9).toDouble  / plateApp4
 		pitcher2.p2B  = pitchingData(pitcher2.rowID)(10).toDouble / plateApp4
 		pitcher2.p3B  = pitchingData(pitcher2.rowID)(11).toDouble / plateApp4
 		pitcher2.pHR  = pitchingData(pitcher2.rowID)(12).toDouble / plateApp4
-		pitcher2.pBB  = pitchingData(pitcher2.rowID)(15).toDouble / plateApp4
-		pitcher2.pIBB = pitchingData(pitcher2.rowID)(27).toDouble / plateApp4
-		pitcher2.pHBP = pitchingData(pitcher2.rowID)(24).toDouble / plateApp4
+		pitcher2.pTW  = pitchingData(pitcher2.rowID)(30).toDouble / plateApp4
 		pitcher2.pSO  = pitchingData(pitcher2.rowID)(16).toDouble / plateApp4
-		pitcher2.pSF  = pitchingData(pitcher2.rowID)(26).toDouble / plateApp4
-		pitcher2.pSH  = pitchingData(pitcher2.rowID)(25).toDouble / plateApp4
-		pitcher2.pNO  = pitchingData(pitcher2.rowID)(29).toDouble / plateApp4
+		pitcher2.pBO  = pitchingData(pitcher2.rowID)(29).toDouble / plateApp4
 
 		val plateApp5 = leagueData(1)(3).toDouble
 		league.p1B  = leagueData(1)(5).toDouble  / plateApp5
 		league.p2B  = leagueData(1)(6).toDouble / plateApp5
 		league.p3B  = leagueData(1)(7).toDouble / plateApp5
 		league.pHR  = leagueData(1)(8).toDouble / plateApp5
-		league.pBB  = leagueData(1)(11).toDouble / plateApp5
-		league.pIBB = leagueData(1)(12).toDouble / plateApp5
-		league.pHBP = leagueData(1)(14).toDouble / plateApp5
+		league.pTW  = leagueData(1)(22).toDouble / plateApp5
 		league.pSO  = leagueData(1)(13).toDouble / plateApp5
-		league.pSF  = leagueData(1)(15).toDouble / plateApp5
-		league.pSH  = leagueData(1)(16).toDouble / plateApp5
-		league.pNO  = leagueData(1)(21).toDouble / plateApp5
+		league.pBO  = leagueData(1)(21).toDouble / plateApp5
 
-		println((leagueData(1)(5).toDouble  / plateApp5) +
-		(leagueData(1)(6).toDouble / plateApp5) +
-		(leagueData(1)(7).toDouble / plateApp5) +
-		(leagueData(1)(8).toDouble / plateApp5) +
-		(leagueData(1)(11).toDouble / plateApp5) +
-		(leagueData(1)(12).toDouble / plateApp5) +
-		(leagueData(1)(14).toDouble / plateApp5) +
-		(leagueData(1)(13).toDouble / plateApp5) +
-		(leagueData(1)(15).toDouble / plateApp5) +
-		(leagueData(1)(16).toDouble / plateApp5) +
-		(leagueData(1)(21).toDouble / plateApp5))
+		// println((pitchingData(pitcher2.rowID)(9).toDouble  / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(10).toDouble / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(11).toDouble / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(12).toDouble / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(30).toDouble / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(16).toDouble / plateApp4) +
+		// (pitchingData(pitcher2.rowID)(29).toDouble / plateApp4))
+
+		// println((leagueData(1)(5).toDouble  / plateApp5) +
+		// (leagueData(1)(6).toDouble / plateApp5) +
+		// (leagueData(1)(7).toDouble / plateApp5) +
+		// (leagueData(1)(8).toDouble / plateApp5) +
+		// (leagueData(1)(22).toDouble / plateApp5) +
+		// (leagueData(1)(13).toDouble / plateApp5) +
+		// (leagueData(1)(21).toDouble / plateApp5))
+
+		
+	}
+	/*
+	class scoreboard {
+		var offense = 1
+		var nextBatter1 = 0
+		var nextBatter2 = 0
+		var score1 = 0
+		var score2 = 0
+		var inning = 0.0
+		var outs = 0
+		var bases = "000"
+	}
+	*/
+
+	def playGame() {
+		val initState = new scoreboard
+		val currState = playHalfInning(initState)
+		println(currState.inning)
+	}
+
+	def playHalfInning(currState: scoreboard): scoreboard = {
+		if (currState.inning <= 8.5) {
+			val nextState = playAtBat(currState)
+			playHalfInning(nextState)
+		} else {
+			currState
+		}
+	}
+
+	def playAtBat(currState: scoreboard): scoreboard = {
+		if (currState.outs == 0) {
+			if (currState.bases == "000") {
+				if ()
+			} else if (currState.bases == "100") {
+				//
+			} else if (currState.bases == "010") {
+				//
+			} else if (currState.bases == "001") {
+				//
+			} else if (currState.bases == "110") {
+				//
+			} else if (currState.bases == "101") {
+				//
+			} else if (currState.bases == "011") {
+				//
+			} else if (currState.bases == "111") {
+				//
+			}
+		} else if (currState.outs == 1) {
+
+		}
 	}
 
 	def main(args: Array[String]) {
@@ -299,7 +361,7 @@ object BaseballSimulator {
 		createDatabases()
 		checkValidNames(args)
 		initializeProbs()
-
+		playGame()
 	}
 }
 
