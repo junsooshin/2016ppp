@@ -10,8 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 import com.cra.figaro.language._
 import com.cra.figaro.library.compound._
 import java.io._  // for writing to a file
-import scala.io.StdIn.{readLine}  // for prompting user input
-import util.control.Breaks._  // lets us use "breakable" and break" method
+import util.control.Breaks._  // for "breakable" and break" method
 
 object BaseballSimulator {
 
@@ -32,7 +31,7 @@ object BaseballSimulator {
 		var name: String = null
 		var rowID: Int = 0
 
-		var p1B: Double = 0
+		var p1B: Double = 0  // probabilities to simulate a play
 		var p2B: Double = 0
 		var p3B: Double = 0
 		var pHR: Double = 0
@@ -40,14 +39,17 @@ object BaseballSimulator {
 		var pSO: Double = 0
 		var pBO: Double = 0
 
-		var tPA: Int = 0
-		var t1B: Int = 0
+		var t1B: Int = 0  // stats for box score
 		var t2B: Int = 0
 		var t3B: Int = 0
 		var tHR: Int = 0
 		var tTW: Int = 0
 		var tSO: Int = 0
 		var tBO: Int = 0
+
+		var tPA: Int = 0
+		var tR: Int = 0
+		var tRBI: Int = 0
 	}
 
 	class scorecard {
@@ -55,12 +57,11 @@ object BaseballSimulator {
 		var oppPitcher = new player
 		var runs = 0
 		var outs = 0
-		var bases = "000"
-		var base1 = ""
-		var base2 = ""
-		var base3 = ""
+		var bases: Element[String] = Constant("000")  // bases occupied; 0 is empty, 1 is full; 1st 2nd 3rd
+		var base1 = -1  // indicates who is on 1st base by batter order
+		var base2 = -1
+		var base3 = -1
 		var currBatterOrder = 0
-		var currPlay: Element[String] = Select(1.0 -> "")
 	}
 
 	/* 	This function checks for the right number of arguments given from the
@@ -312,7 +313,7 @@ object BaseballSimulator {
 		// println(pitcher2.pBO)
 	}
 
-	/*	This function creates two scorecards and calls playRegularInnings.
+	/*	This function creates two scorecards and calls playInnings.
 	 * 	It gets back a pair of scorecards when the game finishes.
 	 */
 	def playGame() {
@@ -322,203 +323,378 @@ object BaseballSimulator {
 		initState2.batters = batters2
 		initState1.oppPitcher = pitcher2
 		initState2.oppPitcher = pitcher1
-		val pair = playRegularInnings(initState1, initState2, 0.0)
+		val pair = playInnings(initState1, initState2, 0.0)
 	}
 
 	/*	This function calls playHalfInning with an appropriate scorecard,
 	 *	depending on whether an inning is top or bottom.
 	 *	It returns a pair of scorecards when the game finishes.
 	 */
-	def playRegularInnings(currState1: scorecard, currState2: scorecard, inn: Double): (scorecard, scorecard) = {
+	def playInnings(currState1: scorecard, currState2: scorecard, inn: Double): (scorecard, scorecard) = {
+		
 		var inning = inn
-		if (inning <= 8) {  // top 9th isn't completed yet
-			if (inning - (inning.floor) == 0) {  // top half; team 1 offense
-				val nextState1 = playHalfInning(currState1)
-				inning += 0.5
-				playRegularInnings(nextState1, currState2, inning)
-			} else {  // bottom half; team 2 offense
-				val nextState2 = playHalfInning(currState2)
-				inning += 0.5
-				playRegularInnings(currState1, nextState2, inning)
-			}
-		} else if (inning == 8.5) {  // top 9th is completed
+
+		while (inning <= 7.5) {  // play upto (including) top 9th
+			val nextState1 = playHalfInning(currState1)
+			val nextState2 = playHalfInning(currState2)
+			inning += 1
+			playInnings(nextState1, nextState2, inning)
+		}
+
+		if (inning == 8.5) {  // top 9th is completed
 			if (currState1.runs < currState2.runs)  {  // team 2 has won
 				val pair = (currState1, currState2)
 				pair
-			} else {  // team 2 hasn't won, so plays offense for the last time
+			} else {  // team 2 hasn't won, so plays offense for bot 9th
 				val nextState2 = playHalfInning(currState2)
 				inning += 0.5
-				playRegularInnings(currState1, nextState2, inning)
+				playInnings(currState1, nextState2, inning)
 			}
-		} else {  // bot 9th is completed; return the scorecards
-			val pair = (currState1, currState2)
-			pair
+		} else {  // bot 9th or more is completed
+			if (currState1.runs == currState2.runs) {
+				val nextState1 = playHalfInning(currState1)
+				val nextState2 = playHalfInning(currState2)
+				inning += 1
+				playInnings(nextState1, nextState2, inning)
+			} else {
+				val pair = (currState1, currState2)
+				pair
+			}
 		}
 	}
 
 	/*
 	class scorecard {
-		val batters = Array.fill(9)(new player)
-		val oppPitcher = new player
+		var batters = Array.fill(9)(new player)
+		var oppPitcher = new player
 		var runs = 0
 		var outs = 0
 		var bases = "000"
-		var base1 = null
-		var base2 = null
-		var base3 = null
+		var base1 = -1
+		var base2 = -1
+		var base3 = -1
 		var currBatterOrder = 0
-		var currPlay = null
 	}
 	*/
 
 	/*	This function plays out an half inning until there are 3 outs. As it
 	 *	runs, it updates the runs, bases, players on the bases, and the
 	 *	players' total statistics. 
-	 *  When it finishes, it resets the outs to 0 and bases to "000".
+	 *  When it finishes, it resets the outs to 0, bases to "000", and base1,
+	 *	base2, and base3 to -1
 	 */
 	def playHalfInning(currState: scorecard): scorecard = {
 
-		if ((currState.outs == 0) || (currState.outs == 1) || (currState.outs == 2)) {
-			if (currState.bases == "000") {
-				if (playAtBat(currState).currPlay == "1B") {
-					currState.bases == "100"
-					currState.currBatterOrder
-				} else if (playAtBat(currState).currPlay == "2B") {
+		// copy variables to make the names shorter
+		var batters = currState.batters
+		var oppPitcher = currState.oppPitcher
+		var runs = currState.runs
+		var outs = currState.outs
+		var bases = currState.bases
+		var base1 = currState.base1
+		var base2 = currState.base2
+		var base3 = currState.base3
+		var currBatterOrder = currState.currBatterOrder
+		var currPlay = playAtBat(currState)
+
+		val pFirstToThird = 2455.0 / 8879.0   // on a single; otherwise, first to second
+		val pSecondToHome = 2931.0 / 5104.0   // on a single; otherwise, second to third
+		val pFirstToHome  = 1051.0 / 2425.0   // on a double; otherwise, first to third
+
+		batters(currBatterOrder).tPA += 1
+
+		if ((outs == 0) || (outs == 1) || (outs == 2)) {
+			if (bases == Constant("000")) {
+				if (currPlay == Constant("1B")) {
+					bases = Constant("100")
+					base1 = currBatterOrder
+					batters(currBatterOrder).t1B += 1
+				} else if (currPlay == Constant("2B")) {
+					bases = Constant("010")
+					base2 = currBatterOrder
+					batters(currBatterOrder).t2B += 1
+				} else if (currPlay == Constant("3B")) {
+					bases = Constant("001")
+					base3 = currBatterOrder
+					batters(currBatterOrder).t3B += 1
+				} else if (currPlay == Constant("HR")) {
+					bases = Constant("000")
+					runs += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tRBI += 1
+				} else if (currPlay == Constant("TW")) {
+					bases = Constant("100")
+					base1 = currBatterOrder
+					batters(currBatterOrder).tTW += 1
+				} else if (currPlay == Constant("SO")) {
+					outs += 1
+					batters(currBatterOrder).tSO += 1
+				}
+			} else if (bases == Constant("100")) {
+				if (currPlay == Constant("1B")) {
+					bases = Select(pFirstToThird -> "101", 1 - pFirstToThird -> "110")
+					if (bases == Constant("101")) {
+						base3 = base1
+					} else {
+						base2 = base1
+					}
+					base1 = currBatterOrder
+					batters(currBatterOrder).t1B += 1
+				} else if (currPlay == Constant("2B")) {
+					bases = Select(pSecondToHome -> "010", 1 - pSecondToHome -> "011")
+					if (bases == Constant("010")) {
+						batters(base1).tR += 1
+						batters(currBatterOrder).tRBI += 1
+					} else {
+						base3 = base1
+					}
+					base1 = -1
+					base2 = currBatterOrder
+					batters(currBatterOrder).t2B += 1
+				} else if (currPlay == Constant("3B")) {
+					bases = Constant("001")
+					batters(base1).tR += 1
+					runs += 1
+					base1 = -1
+					base3 = currBatterOrder
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 1
+				} else if (currPlay == Constant("HR")) {
+					bases = Constant("000")
+					batters(base1).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
+					base1 = -1
+				} else if (currPlay == Constant("TW")) {
+					bases = Constant("110")
+					base2 = base1
+					base1 = currBatterOrder
+					batters(currBatterOrder).tTW += 1
+				} else if (currPlay == Constant("SO")) {
+					outs += 1
+					batters(currBatterOrder).tSO += 1
+				}
+			} else if (bases == Constant("010")) {
+				if (currPlay == Constant("1B")) {
+					bases = Select(pSecondToHome -> "100", 1 - pSecondToHome -> "101")
+					if (bases == Constant("100")) {
+						batters(base2).tR += 1
+						runs += 1
+						batters(currBatterOrder).t1B += 1
+						batters(currBatterOrder).tRBI += 1
+						base2 = -1
+					} else {
+						base3 = base2
+						base2 = -1
+					}
+					base1 = currBatterOrder
+				} else if (currPlay == Constant("2B")) {
+					bases == Constant("010")
+					batters(base2).tR += 1
+					runs += 1
+					batters(currBatterOrder).t2B += 1
+					batters(currBatterOrder).tRBI += 1
+					base2 = currBatterOrder
+				} else if (currPlay == Constant("3B")) {
+					bases == Constant("001")
+					batters(base2).tR += 1
+					runs += 1
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 1
+					base2 = -1
+					base3 = currBatterOrder
+				} else if (currPlay == Constant("HR")) {
+					bases = Constant("000")
+					batters(base2).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
+					base2 = -1
+				} else if (currPlay == Constant("TW")) {
+					bases = Constant("110")
+					batters(currBatterOrder).tTW += 1
+					base1 = currBatterOrder
+				} else if (currPlay == Constant("SO")) {
+					batters(currBatterOrder).tSO += 1
+					outs += 1
+				}
+			} else if (bases == Constant("001")) {
+				if (currPlay == Constant("1B")) {
+					bases = Constant("100")
+					batters(base3).tR += 1
+					runs += 1
+					base3 = -1
+					batters(currBatterOrder).t1B += 1
+					batters(currBatterOrder).tRBI += 1
+					base1 = currBatterOrder
+				} else if (currPlay == Constant("2B")) {
+					bases = Constant("010")
+					batters(base3).tR += 1
+					runs += 1
+					base3 = -1
+					batters(currBatterOrder).t2B += 1
+					batters(currBatterOrder).tRBI += 1
+					base2 = currBatterOrder
+				} else if (currPlay == Constant("3B")) {
+					bases = Constant("001")
+					batters(base3).tR += 1
+					runs += 1
+					base3 = -1
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 1
+					base3 = currBatterOrder
+				} else if (currPlay == Constant("HR")) {
+					bases = Constant("000")
+					batters(base3).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
+					base3 = -1
+				} else if (currPlay == Constant("TW")) {
+					bases = Constant("101")
+					batters(currBatterOrder).tTW += 1
+					base1 = currBatterOrder
+				} else if (currPlay == Constant("SO")) {
+					batters(currBatterOrder).tSO += 1
+					outs += 1
+				}
+			} else if (bases == Constant("110")) {
+				if (currPlay == Constant("1B")) {
+					bases = Select(pSecondToHome -> "110", 
+								   pFirstToThird * pSecondToHome -> "101", 
+								   1 - (pSecondToHome + (pFirstToThird * pSecondToHome)) -> "111")
+					if (bases == Constant("110")) {
+						
+					} else if (bases == Constant("101")) {
+
+					} else {
+						
+					}
+
+				} else if (currPlay == Constant("2B")) {
+					
+				} else if (currPlay == Constant("3B")) {
+					
+				} else if (currPlay == Constant("HR")) {
+					
+				} else if (currPlay == Constant("TW")) {
+					
+				} else if (currPlay == Constant("SO")) {
+					
+				}
+			} else if (bases == Constant("101")) {
+				if (currPlay == Constant("1B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "3B") {
+				} else if (currPlay == Constant("2B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "HR") {
+				} else if (currPlay == Constant("3B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "TW") {
+				} else if (currPlay == Constant("HR")) {
 					//
-				} else if (playAtBat(currState).currPlay == "SO") {
+				} else if (currPlay == Constant("TW")) {
+					//
+				} else if (currPlay == Constant("SO")) {
 					//
 				}
-			} else if (currState.bases == "100") {
-				if (playAtBat(currState).currPlay == "1B") {
+			} else if (bases == Constant("011")) {
+				if (currPlay == Constant("1B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "2B") {
+				} else if (currPlay == Constant("2B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "3B") {
+				} else if (currPlay == Constant("3B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "HR") {
+				} else if (currPlay == Constant("HR")) {
 					//
-				} else if (playAtBat(currState).currPlay == "TW") {
+				} else if (currPlay == Constant("TW")) {
 					//
-				} else if (playAtBat(currState).currPlay == "SO") {
-					//
-				}
-			} else if (currState.bases == "010") {
-				if (playAtBat(currState).currPlay == "1B") {
-					//
-				} else if (playAtBat(currState).currPlay == "2B") {
-					//
-				} else if (playAtBat(currState).currPlay == "3B") {
-					//
-				} else if (playAtBat(currState).currPlay == "HR") {
-					//
-				} else if (playAtBat(currState).currPlay == "TW") {
-					//
-				} else if (playAtBat(currState).currPlay == "SO") {
+				} else if (currPlay == Constant("SO")) {
 					//
 				}
-			} else if (currState.bases == "001") {
-				if (playAtBat(currState).currPlay == "1B") {
+			} else if (bases == Constant("111")) {
+				if (currPlay == Constant("1B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "2B") {
+				} else if (currPlay == Constant("2B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "3B") {
+				} else if (currPlay == Constant("3B")) {
 					//
-				} else if (playAtBat(currState).currPlay == "HR") {
+				} else if (currPlay == Constant("HR")) {
 					//
-				} else if (playAtBat(currState).currPlay == "TW") {
+				} else if (currPlay == Constant("TW")) {
 					//
-				} else if (playAtBat(currState).currPlay == "SO") {
-					//
-				}
-			} else if (currState.bases == "110") {
-				if (playAtBat(currState).currPlay == "1B") {
-					//
-				} else if (playAtBat(currState).currPlay == "2B") {
-					//
-				} else if (playAtBat(currState).currPlay == "3B") {
-					//
-				} else if (playAtBat(currState).currPlay == "HR") {
-					//
-				} else if (playAtBat(currState).currPlay == "TW") {
-					//
-				} else if (playAtBat(currState).currPlay == "SO") {
-					//
-				}
-			} else if (currState.bases == "101") {
-				if (playAtBat(currState).currPlay == "1B") {
-					//
-				} else if (playAtBat(currState).currPlay == "2B") {
-					//
-				} else if (playAtBat(currState).currPlay == "3B") {
-					//
-				} else if (playAtBat(currState).currPlay == "HR") {
-					//
-				} else if (playAtBat(currState).currPlay == "TW") {
-					//
-				} else if (playAtBat(currState).currPlay == "SO") {
-					//
-				}
-			} else if (currState.bases == "011") {
-				if (playAtBat(currState).currPlay == "1B") {
-					//
-				} else if (playAtBat(currState).currPlay == "2B") {
-					//
-				} else if (playAtBat(currState).currPlay == "3B") {
-					//
-				} else if (playAtBat(currState).currPlay == "HR") {
-					//
-				} else if (playAtBat(currState).currPlay == "TW") {
-					//
-				} else if (playAtBat(currState).currPlay == "SO") {
-					//
-				}
-			} else if (currState.bases == "111") {
-				if (playAtBat(currState).currPlay == "1B") {
-					//
-				} else if (playAtBat(currState).currPlay == "2B") {
-					//
-				} else if (playAtBat(currState).currPlay == "3B") {
-					//
-				} else if (playAtBat(currState).currPlay == "HR") {
-					//
-				} else if (playAtBat(currState).currPlay == "TW") {
-					//
-				} else if (playAtBat(currState).currPlay == "SO") {
+				} else if (currPlay == Constant("SO")) {
 					//
 				}
 			}
 		}
 
-		if ((currState.outs == 2) && (playAtBat(currState).currPlay == "BO")) {
-			if (currState.bases == "000") {
+		if (((outs == 0) || (outs == 1)) && (currPlay == Constant("BO"))) {
+			if (bases == Constant("000")) {
 				
-			} else if (currState.bases == "100") {
+			} else if (bases == Constant("100")) {
 
-			} else if (currState.bases == "010") {
+			} else if (bases == Constant("010")) {
 				
-			} else if (currState.bases == "001") {
+			} else if (bases == Constant("001")) {
 				
-			} else if (currState.bases == "110") {
+			} else if (bases == Constant("110")) {
 				
-			} else if (currState.bases == "101") {
+			} else if (bases == Constant("101")) {
 				
-			} else if (currState.bases == "011") {
+			} else if (bases == Constant("011")) {
 				
-			} else if (currState.bases == "111") {
+			} else if (bases == Constant("111")) {
 				
 			}
 		}
 
+		if ((outs == 2) && (currPlay == Constant("BO"))) {
+			if (bases == Constant("000")) {
+				
+			} else if (bases == Constant("100")) {
+
+			} else if (bases == Constant("010")) {
+				
+			} else if (bases == Constant("001")) {
+				
+			} else if (bases == Constant("110")) {
+				
+			} else if (bases == Constant("101")) {
+				
+			} else if (bases == Constant("011")) {
+				
+			} else if (bases == Constant("111")) {
+				
+			}
+		}
+
+		// update the currState after a play
+		currState.batters = batters
+		currState.oppPitcher = oppPitcher
+		currState.runs = runs
+		currState.outs = outs
+		currState.bases = bases
+		currState.base1 = base1
+		currState.base2 = base2
+		currState.base3 = base3
+		currState.currBatterOrder += 1
+		if (currState.currBatterOrder == 9) {
+			currState.currBatterOrder = 0
+		}
+
+		// recurse or return
 		if (currState.outs < 3) {
 			playHalfInning(currState)
 		} else {
 			currState.outs = 0
+			currState.bases = Constant("000")
+			currState.base1 = -1
+			currState.base2 = -1
+			currState.base3 = -1
 			currState
 		}
 	}
@@ -526,9 +702,8 @@ object BaseballSimulator {
 	/*	This function considers the batter, pitcher, and league probabilities
 	 * 	and uses the odds ratio method to calculate the probabilities for 
 	 *	individual events occurring during an at-bat.
-	 *	It updates the nextBatter.
 	 */
-	def playAtBat(currState: scorecard): scorecard = {
+	def playAtBat(currState: scorecard): Element[String] = {
 
 		val sumContactB = batters1(4).p1B + batters1(4).p2B + batters1(4).p3B + batters1(4).pHR + batters1(4).pBO
 		val sumContactP = pitcher2.p1B + pitcher2.p2B + pitcher2.p3B + pitcher2.pHR + pitcher2.pBO
@@ -654,13 +829,8 @@ object BaseballSimulator {
 		// val totalProb2 = batters1(4).pBO + batters1(4).p1B + batters1(4).p2B + batters1(4).p3B + batters1(4).pHR + batters1(4).pTW + batters1(4).pSO
 		// println("Batter Total: " + totalProb2)
 
-		currState.currPlay = Select(p1B -> "1B", p2B -> "2B", p3B -> "3B", pHR -> "HR", pTW -> "TW", pSO -> "SO", pBO -> "BO")
-
-		currState.currBatterOrder += 1
-		if (currState.currBatterOrder == 9) {
-			currState.currBatterOrder = 0
-		}
-		currState
+		val currPlay = Select(p1B -> "1B", p2B -> "2B", p3B -> "3B", pHR -> "HR", pTW -> "TW", pSO -> "SO", pBO -> "BO")
+		currPlay
 	}
 
 
