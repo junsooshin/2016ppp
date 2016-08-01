@@ -11,6 +11,7 @@ import com.cra.figaro.language._
 import com.cra.figaro.library.compound._
 import java.io._  // for writing to a file
 import util.control.Breaks._  // for "breakable" and break" method
+import com.cra.figaro.algorithm.sampling.Importance
 
 object BaseballSimulator {
 
@@ -316,14 +317,17 @@ object BaseballSimulator {
 	/*	This function creates two scorecards and calls playInnings.
 	 * 	It gets back a pair of scorecards when the game finishes.
 	 */
-	def playGame() {
+	def playGame(): Element[Boolean] = {
 		val initState1 = new scorecard
 		val initState2 = new scorecard
 		initState1.batters = batters1
 		initState2.batters = batters2
 		initState1.oppPitcher = pitcher2
 		initState2.oppPitcher = pitcher1
+		initState1.runs = 1
 		val pair = playInnings(initState1, initState2, 0.0)
+		if (pair._1.runs > pair._2.runs) Constant(true)
+		else Constant(false)
 	}
 
 	/*	This function calls playHalfInning with an appropriate scorecard,
@@ -334,14 +338,20 @@ object BaseballSimulator {
 		
 		var inning = inn
 
-		while (inning <= 7.5) {  // play upto (including) top 9th
-			val nextState1 = playHalfInning(currState1)
-			val nextState2 = playHalfInning(currState2)
-			inning += 1
-			playInnings(nextState1, nextState2, inning)
-		}
+		println("Inning: " + inning)
+		println("Score: " + currState1.runs + "-" + currState2.runs)
 
-		if (inning == 8.5) {  // top 9th is completed
+		if (inning <= 8) {  // top 9th isn't completed yet
+			if (inning - (inning.floor) == 0) {  // top half; team 1 offense
+				val nextState1 = playHalfInning(currState1)
+				inning += 0.5
+				playInnings(nextState1, currState2, inning)
+			} else {  // bottom half; team 2 offense
+				val nextState2 = playHalfInning(currState2)
+				inning += 0.5
+				playInnings(currState1, nextState2, inning)
+			}
+		} else if (inning == 8.5) {  // top 9th is completed
 			if (currState1.runs < currState2.runs)  {  // team 2 has won
 				val pair = (currState1, currState2)
 				pair
@@ -382,6 +392,7 @@ object BaseballSimulator {
 	 *	players' total statistics. 
 	 *  When it finishes, it resets the outs to 0, bases to "000", and base1,
 	 *	base2, and base3 to -1
+	 *	3 outs x 8 states x 7 plays = 168 scenarios
 	 */
 	def playHalfInning(currState: scorecard): scorecard = {
 
@@ -401,7 +412,15 @@ object BaseballSimulator {
 		val pSecondToHome = 2931.0 / 5104.0   // on a single; otherwise, second to third
 		val pFirstToHome  = 1051.0 / 2425.0   // on a double; otherwise, first to third
 
+		currPlay = "2B"
+		
 		batters(currBatterOrder).tPA += 1
+		println("Play: " + currPlay)
+		println("OUTS: " + outs)
+
+		if (currPlay == "2B") {
+			println("YES")
+		}
 
 		if ((outs == 0) || (outs == 1) || (outs == 2)) {
 			if (bases == Constant("000")) {
@@ -442,7 +461,7 @@ object BaseballSimulator {
 					base1 = currBatterOrder
 					batters(currBatterOrder).t1B += 1
 				} else if (currPlay == Constant("2B")) {
-					bases = Select(pSecondToHome -> "010", 1 - pSecondToHome -> "011")
+					bases = Select(pFirstToHome -> "010", 1 - pFirstToHome -> "011")
 					if (bases == Constant("010")) {
 						batters(base1).tR += 1
 						batters(currBatterOrder).tRBI += 1
@@ -566,111 +585,342 @@ object BaseballSimulator {
 			} else if (bases == Constant("110")) {
 				if (currPlay == Constant("1B")) {
 					bases = Select(pSecondToHome -> "110", 
-								   pFirstToThird * pSecondToHome -> "101", 
-								   1 - (pSecondToHome + (pFirstToThird * pSecondToHome)) -> "111")
+								   pSecondToHome * pFirstToThird -> "101", 
+								   1 - (pSecondToHome + (pSecondToHome * pFirstToThird)) -> "111")
 					if (bases == Constant("110")) {
-						
+						batters(base2).tR += 1
+						batters(currBatterOrder).tRBI += 1
+						base2 = base1
+						runs += 1
 					} else if (bases == Constant("101")) {
-
+						batters(base2).tR += 1
+						batters(currBatterOrder).tRBI += 1
+						base2 = -1
+						base3 = base1
 					} else {
-						
+						base3 = base2
+						base2 = base1
 					}
-
+					batters(currBatterOrder).t1B += 1
+					base1 = currBatterOrder
 				} else if (currPlay == Constant("2B")) {
-					
+					bases = Select(pFirstToHome -> "010", 1 - pFirstToHome -> "011")
+					if (bases == Constant("010")) {
+						batters(base1).tR += 1
+						batters(currBatterOrder).tRBI += 2
+						runs += 2
+					} else {
+						base3 = base1
+						batters(currBatterOrder).tRBI += 1
+						runs += 1
+					}
+					batters(base2).tR += 1
+					batters(currBatterOrder).t2B += 1
+					base2 = currBatterOrder
+					base1 = -1
 				} else if (currPlay == Constant("3B")) {
-					
+					bases = Constant("001")
+					batters(base2).tR += 1
+					batters(base1).tR += 1
+					runs += 2
+					batters(currBatterOrder).tRBI += 2
+					batters(currBatterOrder).t3B += 1
+					base3 = currBatterOrder
+					base2 = -1
+					base1 = -1
 				} else if (currPlay == Constant("HR")) {
-					
+					bases = Constant("000")
+					batters(base2).tR += 1
+					batters(base1).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tRBI += 3
+					batters(currBatterOrder).tR += 1
+					runs += 3
+					base1 = -1
+					base2 = -1
 				} else if (currPlay == Constant("TW")) {
-					
+					bases = Constant("111")
+					base3 = base2
+					base2 = base1
+					base1 = currBatterOrder
+					batters(currBatterOrder).tTW += 1
 				} else if (currPlay == Constant("SO")) {
-					
+					batters(currBatterOrder).tSO += 1
+					outs += 1
 				}
 			} else if (bases == Constant("101")) {
 				if (currPlay == Constant("1B")) {
-					//
+					bases = Select(pFirstToThird -> "101", 1 - pFirstToThird -> "110")
+					if (bases == Constant("101")) {
+						base3 = base1
+					} else {
+						base2 = base1
+					}
+					batters(base3).tR += 1
+					batters(currBatterOrder).t1B += 1
+					batters(currBatterOrder).tRBI += 1
+					runs += 1
+					base1 = currBatterOrder
 				} else if (currPlay == Constant("2B")) {
-					//
+					bases = Select(pFirstToHome -> "010", 1 - pFirstToHome -> "011")
+					if (bases == Constant("010")) {
+						batters(base1).tR += 1
+						base3 = -1
+						runs += 2
+						batters(currBatterOrder).tRBI += 2
+					} else {
+						base3 = base1
+						runs += 1
+						batters(currBatterOrder).tRBI += 1
+					}
+					batters(base3).tR += 1
+					batters(currBatterOrder).t2B += 1
+					base2 = currBatterOrder
+					base1 = -1
 				} else if (currPlay == Constant("3B")) {
-					//
+					bases = Constant("001")
+					batters(base3).tR += 1
+					batters(base1).tR += 1
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
+					base3 = currBatterOrder
+					base1 = -1
+					base2 = -1
 				} else if (currPlay == Constant("HR")) {
-					//
+					bases = Constant("000")
+					batters(base3).tR += 1
+					batters(base1).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tRBI += 3
+					batters(currBatterOrder).tR += 1
+					runs += 1
+					base3 = -1
+					base1 = -1
 				} else if (currPlay == Constant("TW")) {
-					//
+					bases = Constant("101")
+					batters(currBatterOrder).tTW += 1
+					base2 = base1
+					base1 = currBatterOrder
 				} else if (currPlay == Constant("SO")) {
-					//
+					batters(currBatterOrder).tSO += 1
+					outs += 1
 				}
 			} else if (bases == Constant("011")) {
 				if (currPlay == Constant("1B")) {
-					//
+					bases = Select(pSecondToHome -> "100", 1 - pSecondToHome -> "101")
+					if (bases == Constant("100")) {
+						batters(base2).tR += 1
+						base3 = -1
+						batters(currBatterOrder).tRBI += 2
+						runs += 2
+					} else {
+						base3 = base2
+						batters(currBatterOrder).tRBI += 1
+						runs += 1
+					}
+					batters(base3).tR += 1
+					base2 = -1
+					batters(currBatterOrder).t1B += 1
+					base1 = currBatterOrder
 				} else if (currPlay == Constant("2B")) {
-					//
+					bases = Constant("010")
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					base3 = -1
+					base2 = currBatterOrder
+					batters(currBatterOrder).t2B += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
 				} else if (currPlay == Constant("3B")) {
-					//
+					bases = Constant("001")
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					base3 = currBatterOrder
+					base2 = -1
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 2
+					runs += 2
 				} else if (currPlay == Constant("HR")) {
-					//
+					bases = Constant("000")
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tRBI += 3
+					runs += 3
+					base3 = -1
+					base2 = -1
 				} else if (currPlay == Constant("TW")) {
-					//
+					bases = Constant("111")
+					base1 = currBatterOrder
+					batters(currBatterOrder).tTW += 1
 				} else if (currPlay == Constant("SO")) {
-					//
+					batters(currBatterOrder).tSO += 1
+					outs += 1
 				}
 			} else if (bases == Constant("111")) {
 				if (currPlay == Constant("1B")) {
-					//
+					bases = Select(pSecondToHome -> "110",
+								   pSecondToHome * pFirstToThird -> "101",
+								   1 - (pSecondToHome * pFirstToThird) -> "111")
+					if (bases == Constant("110")) {
+						batters(base2).tR += 1
+						base3 = -1
+						base2 = base1
+						batters(currBatterOrder).tRBI += 2
+						runs += 2
+					} else if (bases == Constant("101")) {
+						batters(base2).tR += 1
+						base3 = base1
+						base2 = -1
+						batters(currBatterOrder).tRBI += 2
+						runs += 2
+					} else {
+						base3 = base2
+						base2 = base1
+						batters(currBatterOrder).tRBI += 1
+						runs += 1
+					}
+					batters(base3).tR += 1
+					base1 = currBatterOrder
+					batters(currBatterOrder).t1B += 1
 				} else if (currPlay == Constant("2B")) {
-					//
+					bases = Select(pFirstToHome -> "010", 1 - pFirstToHome -> "011")
+					if (bases == Constant("010")) {
+						batters(base1).tR += 1
+						base3 = -1
+						batters(currBatterOrder).tRBI += 3
+						runs += 3
+					} else {
+						base3 = base1
+						batters(currBatterOrder).tRBI += 2
+						runs += 2
+					}
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					base1 = -1
+					batters(currBatterOrder).t2B += 1
+					base2 = currBatterOrder
 				} else if (currPlay == Constant("3B")) {
-					//
+					bases = Constant("001")
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					batters(base1).tR += 1
+					batters(currBatterOrder).t3B += 1
+					batters(currBatterOrder).tRBI += 3
+					runs += 3
+					base1 = -1
+					base2 = -1
+					base3 = currBatterOrder
 				} else if (currPlay == Constant("HR")) {
-					//
+					bases = Constant("000")
+					batters(base3).tR += 1
+					batters(base2).tR += 1
+					batters(base1).tR += 1
+					batters(currBatterOrder).tR += 1
+					batters(currBatterOrder).tHR += 1
+					batters(currBatterOrder).tRBI += 4
+					runs += 4
+					base1 = -1
+					base2 = -1
+					base3 = -1
 				} else if (currPlay == Constant("TW")) {
-					//
+					batters(base3).tR += 1
+					base3 = base2
+					base2 = base1
+					base1 = currBatterOrder
+					batters(currBatterOrder).tTW += 1
+					batters(currBatterOrder).tRBI += 1
+					runs += 1
 				} else if (currPlay == Constant("SO")) {
-					//
+					batters(currBatterOrder).tSO += 1
+					outs += 1
 				}
 			}
 		}
 
 		if (((outs == 0) || (outs == 1)) && (currPlay == Constant("BO"))) {
+			batters(currBatterOrder).tBO += 1
+			outs += 1
 			if (bases == Constant("000")) {
-				
+				outs += 1
 			} else if (bases == Constant("100")) {
-
+				bases = Select(0.6 -> "100", 0.4 -> "010")
+				if (bases == Constant("100")) {
+					base2 = -1
+					base1 = currBatterOrder
+				} else {
+					base2 = base1
+				}
 			} else if (bases == Constant("010")) {
-				
+				bases = Select(0.8 -> "010", 0.2 -> "001")
+				if (bases == Constant("001")) {
+					base3 = base2
+					base2 = -1
+				}
 			} else if (bases == Constant("001")) {
-				
+				bases = Select(0.5 -> "000", 0.5 -> "001")
+				if (bases == Constant("000")) {
+					batters(base3).tR += 1
+					runs += 1
+					batters(currBatterOrder).tRBI += 1
+					base3 = -1
+				} 
 			} else if (bases == Constant("110")) {
-				
+				bases = Select(0.7 -> "110", 0.3 -> "101")
+				if (bases == Constant("101")) {
+					base3 = base2
+					base2 = -1
+				}
 			} else if (bases == Constant("101")) {
-				
+				bases = Select(0.4 -> "100", 0.2 -> "011", 0.4 -> "101")
+				if (bases == Constant("100")) {
+					batters(base3).tR += 1
+					base3 = -1
+					runs += 1
+					batters(currBatterOrder).tRBI += 1
+				} else if (bases == Constant("011")) {
+					base2 = base1
+					base1 = -1
+				}
 			} else if (bases == Constant("011")) {
-				
+				bases = Select(0.3 -> "010", 0.2 -> "001", 0.5 -> "011")
+				if (bases == Constant("010")) {
+					batters(base3).tR += 1
+					base3 = -1
+					batters(currBatterOrder).tRBI += 1
+					runs += 1
+				} else if (bases == Constant("001")) {
+					batters(base3).tR += 1
+					base3 = base2
+					base2 = -1
+					batters(currBatterOrder).tRBI
+					runs += 1
+				}
 			} else if (bases == Constant("111")) {
-				
+				bases = Select(0.4 -> "110", 0.1 -> "101", 0.5 -> "111")
+				if (bases == Constant("110")) {
+					batters(base3).tR += 1
+					base3 = -1
+					batters(currBatterOrder).tRBI += 1
+					runs += 1
+				} else if (bases == Constant("101")) {
+					batters(base3).tR += 1
+					base3 = base2
+					base2 = -1
+					batters(currBatterOrder).tRBI += 1
+					runs += 1
+				}
 			}
 		}
 
 		if ((outs == 2) && (currPlay == Constant("BO"))) {
-			if (bases == Constant("000")) {
-				
-			} else if (bases == Constant("100")) {
-
-			} else if (bases == Constant("010")) {
-				
-			} else if (bases == Constant("001")) {
-				
-			} else if (bases == Constant("110")) {
-				
-			} else if (bases == Constant("101")) {
-				
-			} else if (bases == Constant("011")) {
-				
-			} else if (bases == Constant("111")) {
-				
-			}
+			batters(currBatterOrder).tBO += 1
+			outs += 1
 		}
+
+		outs += 1
 
 		// update the currState after a play
 		currState.batters = batters
@@ -705,69 +955,69 @@ object BaseballSimulator {
 	 */
 	def playAtBat(currState: scorecard): Element[String] = {
 
-		val sumContactB = batters1(4).p1B + batters1(4).p2B + batters1(4).p3B + batters1(4).pHR + batters1(4).pBO
-		val sumContactP = pitcher2.p1B + pitcher2.p2B + pitcher2.p3B + pitcher2.pHR + pitcher2.pBO
-		val sumContactL = league.p1B + league.p2B + league.p3B + league.pHR + league.pBO
+		// val sumContactB = batters1(4).p1B + batters1(4).p2B + batters1(4).p3B + batters1(4).pHR + batters1(4).pBO
+		// val sumContactP = pitcher2.p1B + pitcher2.p2B + pitcher2.p3B + pitcher2.pHR + pitcher2.pBO
+		// val sumContactL = league.p1B + league.p2B + league.p3B + league.pHR + league.pBO
 
-		val sumNotContactB = batters1(4).pTW + batters1(4).pSO
-		val sumNotContactP = pitcher2.pTW + pitcher2.pSO
-		val sumNotContactL = league.pTW + league.pSO
+		// val sumNotContactB = batters1(4).pTW + batters1(4).pSO
+		// val sumNotContactP = pitcher2.pTW + pitcher2.pSO
+		// val sumNotContactL = league.pTW + league.pSO
 
-		val sumNotBOB = 1 - batters1(4).pBO
-		val sumNotBOP = 1 - pitcher2.pBO
-		val sumNotBOL = 1 - league.pBO
+		// val sumNotBOB = 1 - batters1(4).pBO
+		// val sumNotBOP = 1 - pitcher2.pBO
+		// val sumNotBOL = 1 - league.pBO
 
-		val sumNot1BB = 1 - batters1(4).p1B
-		val sumNot1BP = 1 - pitcher2.p1B
-		val sumNot1BL = 1 - league.p1B
+		// val sumNot1BB = 1 - batters1(4).p1B
+		// val sumNot1BP = 1 - pitcher2.p1B
+		// val sumNot1BL = 1 - league.p1B
 
-		val sumNot2BB = 1 - batters1(4).p2B
-		val sumNot2BP = 1 - pitcher2.p2B
-		val sumNot2BL = 1 - league.p2B
+		// val sumNot2BB = 1 - batters1(4).p2B
+		// val sumNot2BP = 1 - pitcher2.p2B
+		// val sumNot2BL = 1 - league.p2B
 
-		val sumNot3BB = 1 - batters1(4).p3B
-		val sumNot3BP = 1 - pitcher2.p3B
-		val sumNot3BL = 1 - league.p3B
+		// val sumNot3BB = 1 - batters1(4).p3B
+		// val sumNot3BP = 1 - pitcher2.p3B
+		// val sumNot3BL = 1 - league.p3B
 
-		val sumNotHRB = 1 - batters1(4).pHR
-		val sumNotHRP = 1 - pitcher2.pHR
-		val sumNotHRL = 1 - league.pHR
+		// val sumNotHRB = 1 - batters1(4).pHR
+		// val sumNotHRP = 1 - pitcher2.pHR
+		// val sumNotHRL = 1 - league.pHR
 
-		val sumNotTWB = 1 - batters1(4).pTW
-		val sumNotTWP = 1 - pitcher2.pTW
-		val sumNotTWL = 1 - league.pTW
+		// val sumNotTWB = 1 - batters1(4).pTW
+		// val sumNotTWP = 1 - pitcher2.pTW
+		// val sumNotTWL = 1 - league.pTW
 
-		val sumNotSOB = 1 - batters1(4).pSO
-		val sumNotSOP = 1 - pitcher2.pSO
-		val sumNotSOL = 1 - league.pSO
+		// val sumNotSOB = 1 - batters1(4).pSO
+		// val sumNotSOP = 1 - pitcher2.pSO
+		// val sumNotSOL = 1 - league.pSO
 
 
-		val oddsContact = (sumContactB / (1 - sumContactB)) * (sumContactP / (1 - sumContactP)) / (sumContactL / (1 - sumContactL))
-		val pContact = oddsContact / (1 + oddsContact)
+		// val oddsContact = (sumContactB / (1 - sumContactB)) * (sumContactP / (1 - sumContactP)) / (sumContactL / (1 - sumContactL))
+		// val pContact = oddsContact / (1 + oddsContact)
 
-		val oddsNotContact = (sumNotContactB / (1 - sumNotContactB)) * (sumNotContactP / (1 - sumNotContactP)) / (sumNotContactL / (1 - sumNotContactL))
-		val pNotContact = oddsNotContact / (1 + oddsNotContact)
+		// val oddsNotContact = (sumNotContactB / (1 - sumNotContactB)) * (sumNotContactP / (1 - sumNotContactP)) / (sumNotContactL / (1 - sumNotContactL))
+		// val pNotContact = oddsNotContact / (1 + oddsNotContact)
 
-		val oddsNotBO = (sumNotBOB / (1 - sumNotBOB)) * (sumNotBOP / (1 - sumNotBOP)) / (sumNotBOL / (1 - sumNotBOL))
-		val pNotBO = (oddsNotBO / (1 + oddsNotBO))
+		// val oddsNotBO = (sumNotBOB / (1 - sumNotBOB)) * (sumNotBOP / (1 - sumNotBOP)) / (sumNotBOL / (1 - sumNotBOL))
+		// val pNotBO = (oddsNotBO / (1 + oddsNotBO))
 
-		val oddsNot1B = (sumNot1BB / (1 - sumNot1BB)) * (sumNot1BP / (1 - sumNot1BP)) / (sumNot1BL / (1 - sumNot1BL))
-		val pNot1B = (oddsNot1B / (1 + oddsNot1B))
+		// val oddsNot1B = (sumNot1BB / (1 - sumNot1BB)) * (sumNot1BP / (1 - sumNot1BP)) / (sumNot1BL / (1 - sumNot1BL))
+		// val pNot1B = (oddsNot1B / (1 + oddsNot1B))
 
-		val oddsNot2B = (sumNot2BB / (1 - sumNot2BB)) * (sumNot2BP / (1 - sumNot2BP)) / (sumNot2BL / (1 - sumNot2BL))
-		val pNot2B = (oddsNot2B / (1 + oddsNot2B))
+		// val oddsNot2B = (sumNot2BB / (1 - sumNot2BB)) * (sumNot2BP / (1 - sumNot2BP)) / (sumNot2BL / (1 - sumNot2BL))
+		// val pNot2B = (oddsNot2B / (1 + oddsNot2B))
 
-		val oddsNot3B = (sumNot3BB / (1 - sumNot3BB)) * (sumNot3BP / (1 - sumNot3BP)) / (sumNot3BL / (1 - sumNot3BL))
-		val pNot3B = (oddsNot3B / (1 + oddsNot3B))
+		// val oddsNot3B = (sumNot3BB / (1 - sumNot3BB)) * (sumNot3BP / (1 - sumNot3BP)) / (sumNot3BL / (1 - sumNot3BL))
+		// val pNot3B = (oddsNot3B / (1 + oddsNot3B))
 
-		val oddsNotHR = (sumNotHRB / (1 - sumNotHRB)) * (sumNotHRP / (1 - sumNotHRP)) / (sumNotHRL / (1 - sumNotHRL))
-		val pNotHR = (oddsNotHR / (1 + oddsNotHR))
+		// val oddsNotHR = (sumNotHRB / (1 - sumNotHRB)) * (sumNotHRP / (1 - sumNotHRP)) / (sumNotHRL / (1 - sumNotHRL))
+		// val pNotHR = (oddsNotHR / (1 + oddsNotHR))
 
-		val oddsNotTW = (sumNotTWB / (1 - sumNotTWB)) * (sumNotTWP / (1 - sumNotTWP)) / (sumNotTWL / (1 - sumNotTWL))
-		val pNotTW = (oddsNotTW / (1 + oddsNotTW))
+		// val oddsNotTW = (sumNotTWB / (1 - sumNotTWB)) * (sumNotTWP / (1 - sumNotTWP)) / (sumNotTWL / (1 - sumNotTWL))
+		// val pNotTW = (oddsNotTW / (1 + oddsNotTW))
 
-		val oddsNotSO = (sumNotSOB / (1 - sumNotSOB)) * (sumNotSOP / (1 - sumNotSOP)) / (sumNotSOL / (1 - sumNotSOL))
-		val pNotSO = (oddsNotSO / (1 + oddsNotSO))
+		// val oddsNotSO = (sumNotSOB / (1 - sumNotSOB)) * (sumNotSOP / (1 - sumNotSOP)) / (sumNotSOL / (1 - sumNotSOL))
+		// val pNotSO = (oddsNotSO / (1 + oddsNotSO))
 
 
 		val oddsBO = (batters1(4).pBO / (1 - batters1(4).pBO)) * (pitcher2.pBO / (1 - pitcher2.pBO)) / (league.pBO / (1 - league.pBO))
@@ -839,7 +1089,11 @@ object BaseballSimulator {
 		createDatabases()
 		checkValidNames(args)
 		initializeProbs()
-		playGame()
+		val team1Wins = playGame()
+		val algorithm = Importance(500, team1Wins)
+		algorithm.start()
+		println("Win Probability of team1: " + algorithm.probability(team1Wins, true))
+		algorithm.kill()
 	}
 }
 

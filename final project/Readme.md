@@ -48,6 +48,9 @@ note:	Final project for the Probabilistic Programming Praktikum class.
 	2011-2014 MLB Tag from third on flyouts statistics
 		https://malter61.shinyapps.io/BaseballStats/
 
+	2004-2012 MLB Runners scoring from third with less than two outs
+		http://www.azsnakepit.com/2013/3/13/4097416/scoring-runner-third-less-than-two-outs-skill
+
 	Processing a csv file in Scala
 		http://alvinalexander.com/scala/csv-file-how-to-process-open-read-parse-in-scala
 
@@ -76,4 +79,3 @@ note:	Final project for the Probabilistic Programming Praktikum class.
 	probabilistic Figaro Elements. Is there a way to convert (or cast) a
 	Figaro element back to a Scala variable?
 
-	
