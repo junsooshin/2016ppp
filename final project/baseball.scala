@@ -51,12 +51,14 @@ object BaseballSimulator {
 	}
 
 	class scoreboard {
-		var offense = 1
 		var score1 = 0
 		var score2 = 0
 		var inning = 0.0
 		var outs = 0
 		var bases = "000"
+		var offense = 1
+		var nextBatter1 = 0
+		var nextBatter2 = 0
 	}
 
 	/* 	This function checks for the right number of arguments given from the
@@ -227,8 +229,6 @@ object BaseballSimulator {
 	 *	and league classes
 	 */
 	def initializeProbs() {
-		println(batters1(0).rowID)
-
 		for (batter1 <- batters1) {
 			val plateApp1 = battingData(batter1.rowID)(4).toDouble
 			batter1.p1B  = battingData(batter1.rowID)(6).toDouble  / plateApp1
@@ -302,66 +302,207 @@ object BaseballSimulator {
 		// (leagueData(1)(13).toDouble / plateApp5) +
 		// (leagueData(1)(21).toDouble / plateApp5))
 
-		
-	}
-	/*
-	class scoreboard {
-		var offense = 1
-		var nextBatter1 = 0
-		var nextBatter2 = 0
-		var score1 = 0
-		var score2 = 0
-		var inning = 0.0
-		var outs = 0
-		var bases = "000"
-	}
-	*/
+		// println(batters1(4).name)
+		// println(batters1(4).p1B)
+		// println(batters1(4).p2B)
+		// println(batters1(4).p3B)
+		// println(batters1(4).pHR)
+		// println(batters1(4).pTW)
+		// println(batters1(4).pSO)
+		// println(batters1(4).pBO)
 
-	def playGame() {
-		val initState = new scoreboard
-		val currState = playHalfInning(initState)
-		println(currState.inning)
+		// println(pitcher2.name)
+		// println(pitcher2.p1B)
+		// println(pitcher2.p2B)
+		// println(pitcher2.p3B)
+		// println(pitcher2.pHR)
+		// println(pitcher2.pTW)
+		// println(pitcher2.pSO)
+		// println(pitcher2.pBO)
 	}
 
-	def playHalfInning(currState: scoreboard): scoreboard = {
-		if (currState.inning <= 8.5) {
-			val nextState = playAtBat(currState)
-			playHalfInning(nextState)
-		} else {
-			currState
-		}
-	}
+	// def playGame() {
+	// 	val initState = new scoreboard
+	// 	val currState = playRegularInnings(initState)
+	// 	println(currState.inning)
+	// }
 
+	// def playRegularInnings(currState: scoreboard): scoreboard = {
+	// 	if (currState.inning <= 8.5) {  // TODO: take care of the 9th and extra innings
+	// 		val nextState = playHalfInning(currState)
+	// 		playRegularInnings(nextState)
+	// 	} else {
+	// 		currState
+	// 	}
+	// }
+
+	// def playHalfInning(currState: scoreboard): scoreboard = {
+	// 	if (currState.outs == 0) {
+	// 		if (currState.bases == "000") {
+	// 			if ()
+	// 		} else if (currState.bases == "100") {
+	// 			//
+	// 		} else if (currState.bases == "010") {
+	// 			//
+	// 		} else if (currState.bases == "001") {
+	// 			//
+	// 		} else if (currState.bases == "110") {
+	// 			//
+	// 		} else if (currState.bases == "101") {
+	// 			//
+	// 		} else if (currState.bases == "011") {
+	// 			//
+	// 		} else if (currState.bases == "111") {
+	// 			//
+	// 		}
+	// 	} else if (currState.outs == 1) {
+
+	// 	} else if (currState.outs == 2) {
+
+	// 	} else if (currState.outs == 3) {
+	// 		currState
+	// 	}
+	// }
+
+	
+	// class player {
+	// 	var name: String = null
+	// 	var rowID: Int = 0
+
+	// 	var p1B: Double = 0
+	// 	var p2B: Double = 0
+	// 	var p3B: Double = 0
+	// 	var pHR: Double = 0
+	// 	var pTW: Double = 0
+	// 	var pSO: Double = 0
+	// 	var pBO: Double = 0
+
+	// 	var tPA: Int = 0
+	// 	var t1B: Int = 0
+	// 	var t2B: Int = 0
+	// 	var t3B: Int = 0
+	// 	var tHR: Int = 0
+	// 	var tTW: Int = 0
+	// 	var tSO: Int = 0
+	// 	var tBO: Int = 0
+	// }
+
+	// class scoreboard {
+	// 	var score1 = 0
+	// 	var score2 = 0
+	// 	var inning = 0.0
+	// 	var outs = 0
+	// 	var bases = "000"
+	// 	var offense = 1
+	// 	var nextBatter1 = 0
+	// 	var nextBatter2 = 0
+	// }
+	
+
+	/*	This function considers the batter, pitcher, and league probabilities
+	 * 	and uses the odds ratio method to calculate the probabilities for 
+	 *	individual events occurring during an at-bat.
+	 *	It updates the nextBatter.
+	 */
 	def playAtBat(currState: scoreboard): scoreboard = {
-		if (currState.outs == 0) {
-			if (currState.bases == "000") {
-				if ()
-			} else if (currState.bases == "100") {
-				//
-			} else if (currState.bases == "010") {
-				//
-			} else if (currState.bases == "001") {
-				//
-			} else if (currState.bases == "110") {
-				//
-			} else if (currState.bases == "101") {
-				//
-			} else if (currState.bases == "011") {
-				//
-			} else if (currState.bases == "111") {
-				//
-			}
-		} else if (currState.outs == 1) {
+		val sumContactB = batters1(4).p1B + batters1(4).p2B + batters1(4).p3B + batters1(4).pHR + batters1(4).pBO
+		val sumContactP = pitcher2.p1B + pitcher2.p2B + pitcher2.p3B + pitcher2.pHR + pitcher2.pBO
+		val sumContactL = league.p1B + league.p2B + league.p3B + league.pHR + league.pBO
 
-		}
+		val sumNotContactB = batters1(4).pTW + batters1(4).pSO
+		val sumNotContactP = pitcher2.pTW + pitcher2.pSO
+		val sumNotContactL = league.pTW + league.pSO
+
+		val oddsContact = (sumContactB / (1 - sumContactB)) * (sumContactP / (1 - sumContactP)) / (sumContactL / (1 - sumContactL))
+		val pContact = oddsContact / (1 + oddsContact)
+		val oddsNotContact = (sumNotContactB / (1 - sumNotContactB)) * (sumNotContactP / (1 - sumNotContactP)) / (sumNotContactL / (1 - sumNotContactL))
+		val pNotContact = oddsNotContact / (1 + oddsNotContact)
+
+		val sumNotBOB = 1 - batters1(4).pBO
+		val sumNotBOP = 1 - pitcher2.pBO
+		val sumNotBOL = 1 - league.pBO
+
+		val oddsBO = (batters1(4).pBO / (1 - batters1(4).pBO)) * (pitcher2.pBO / (1 - pitcher2.pBO)) / (league.pBO / (1 - league.pBO))
+		val pBO = (oddsBO / (1 + oddsBO))
+		val oddsNotBO = (sumNotBOB / (1 - sumNotBOB)) * (sumNotBOP / (1 - sumNotBOP)) / (sumNotBOL / (1 - sumNotBOL))
+		val pNotBO = (oddsNotBO / (1 + oddsNotBO))
+
+		val sumNot1BB = 1 - batters1(4).p1B
+		val sumNot1BP = 1 - pitcher2.p1B
+		val sumNot1BL = 1 - league.p1B
+
+		val odds1B = (batters1(4).p1B / (1 - batters1(4).p1B)) * (pitcher2.p1B / (1 - pitcher2.p1B)) / (league.p1B / (1 - league.p1B))
+		val p1B = (odds1B / (1 + odds1B))
+		val oddsNot1B = (sumNot1BB / (1 - sumNot1BB)) * (sumNot1BP / (1 - sumNot1BP)) / (sumNot1BL / (1 - sumNot1BL))
+		val pNot1B = (oddsNot1B / (1 + oddsNot1B))
+
+		val sumNot2BB = 1 - batters1(4).p2B
+		val sumNot2BP = 1 - pitcher2.p2B
+		val sumNot2BL = 1 - league.p2B
+
+		val odds2B = (batters1(4).p2B / (1 - batters1(4).p2B)) * (pitcher2.p2B / (1 - pitcher2.p2B)) / (league.p2B / (1 - league.p2B))
+		val p2B = (odds2B / (1 + odds2B))
+		val oddsNot2B = (sumNot2BB / (1 - sumNot2BB)) * (sumNot2BP / (1 - sumNot2BP)) / (sumNot2BL / (1 - sumNot2BL))
+		val pNot2B = (oddsNot2B / (1 + oddsNot2B))
+
+		val sumNot3BB = 1 - batters1(4).p3B
+		val sumNot3BP = 1 - pitcher2.p3B
+		val sumNot3BL = 1 - league.p3B
+
+		val odds3B = (batters1(4).p3B / (1 - batters1(4).p3B)) * (pitcher2.p3B / (1 - pitcher2.p3B)) / (league.p3B / (1 - league.p3B))
+		val p3B = (odds3B / (1 + odds3B)) 
+		val oddsNot3B = (sumNot3BB / (1 - sumNot3BB)) * (sumNot3BP / (1 - sumNot3BP)) / (sumNot3BL / (1 - sumNot3BL))
+		val pNot3B = (oddsNot3B / (1 + oddsNot3B))
+
+		val sumNotHRB = 1 - batters1(4).pHR
+		val sumNotHRP = 1 - pitcher2.pHR
+		val sumNotHRL = 1 - league.pHR
+
+		val oddsHR = (batters1(4).pHR / (1 - batters1(4).pHR)) * (pitcher2.pHR / (1 - pitcher2.pHR)) / (league.pHR / (1 - league.pHR))
+		val pHR = (oddsHR / (1 + oddsHR)) 
+		val oddsNotHR = (sumNotHRB / (1 - sumNotHRB)) * (sumNotHRP / (1 - sumNotHRP)) / (sumNotHRL / (1 - sumNotHRL))
+		val pNotHR = (oddsNotHR / (1 + oddsNotHR))
+
+		val sumNotTWB = 1 - batters1(4).pTW
+		val sumNotTWP = 1 - pitcher2.pTW
+		val sumNotTWL = 1 - league.pTW
+
+		val oddsTW = (batters1(4).pTW / (1 - batters1(4).pTW)) * (pitcher2.pTW / (1 - pitcher2.pTW)) / (league.pTW / (1 - league.pTW))
+		val pTW = (oddsTW / (1 + oddsTW))
+		val oddsNotTW = (sumNotTWB / (1 - sumNotTWB)) * (sumNotTWP / (1 - sumNotTWP)) / (sumNotTWL / (1 - sumNotTWL))
+		val pNotTW = (oddsNotTW / (1 + oddsNotTW))
+
+		val sumNotSOB = 1 - batters1(4).pSO
+		val sumNotSOP = 1 - pitcher2.pSO
+		val sumNotSOL = 1 - league.pSO
+
+		val oddsSO = (batters1(4).pSO / (1 - batters1(4).pSO)) * (pitcher2.pSO / (1 - pitcher2.pSO)) / (league.pSO / (1 - league.pSO))
+		val pSO = (oddsSO / (1 + oddsSO))
+		val oddsNotSO = (sumNotSOB / (1 - sumNotSOB)) * (sumNotSOP / (1 - sumNotSOP)) / (sumNotSOL / (1 - sumNotSOL))
+		val pNotSO = (oddsNotSO / (1 + oddsNotSO))
+
+		println("pBO: " + pBO)
+		println("p1B: " + p1B)
+		println("p2B: " + p2B)
+		println("p3B: " + p3B)
+		println("pHR: " + pHR)
+		println("pTW: " + pTW)
+		println("pSO: " + pSO)
+		val totalProb = pBO + p1B + p2B + p3B + pHR + pTW + pSO
+		println("Total: " + totalProb)
+
+		currState
 	}
+
 
 	def main(args: Array[String]) {
 		checkArgsLength(args)
 		createDatabases()
 		checkValidNames(args)
 		initializeProbs()
-		playGame()
+		val currState = new scoreboard
+		playAtBat(currState)
+		// playGame()
 	}
 }
 

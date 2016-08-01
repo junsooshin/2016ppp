@@ -5,9 +5,10 @@ name: 	Jun Soo Shin
 date: 	2 August 2016
 note:	Final project for the Probabilistic Programming Praktikum class.
 	  
-	  	- The batting and league files are from FanGraphs, and the pitching file 
-	  	is from Baseball Reference. I made a few changes on the files, using
-	  	Excel:
+	  	- I used the 2015 MLB data to generate the probabilities of the
+	  	individual events happening during an at-bat. The batting and league
+	  	files are from FanGraphs, and the pitching file is from Baseball 
+	  	Reference. I made a few changes on the files, using Excel:
 
 		  	- On the Baseball Reference Pitching file, I removed the repeated 
 			rows that specify the categories and the columns for the "rank" and 
@@ -21,7 +22,7 @@ note:	Final project for the Probabilistic Programming Praktikum class.
 		  	now. I also added "TW" columns for "total walks," which sum up
 		  	BB, IBB, and HBP.
 
-		  	- Enrique Hernandez was spelled Kike Hernandez without the accent 
+		  	- "Enrique Hernandez" was spelled "Kike Hernandez" without the accent 
 		  	  mark
 
 
