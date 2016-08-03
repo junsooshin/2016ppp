@@ -1,9 +1,12 @@
 ## Baseball Game Simulator
 
-####Title: 	README.md
-####Name: 	Jun Soo Shin
-####Date: 	2 August 2016
-####purpose:	Final project for the Probabilistic Programming Praktikum class.
+Title: README.md
+
+Name: Jun Soo Shin
+
+Date: 2 August 2016
+
+purpose: Final project for the Probabilistic Programming Praktikum class.
 
 ## Notes:
 - In order to limit the number of different scenarios, it is currently 
@@ -39,7 +42,8 @@ mark.
 
 - Overall guide and inspiration
 
-   <http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>  
+   <http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>
+
    <http://www.fangraphs.com/blogs/instagraphs/daily-projections-by-sabersim-on-fangraphs/>
 
 - The Odds Ratio Method
@@ -96,5 +100,6 @@ accurate baserunning statistics.
 As listed on the articles below, there are a lot of things to consider in
 order to improve a single game baseball simulator.
 
-   <http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>  
+   <http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>
+
    <http://www.fangraphs.com/blogs/instagraphs/daily-projections-by-sabersim-on-fangraphs/>  
