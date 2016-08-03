@@ -1,9 +1,9 @@
 ## Baseball Game Simulator
 
-#####title: README.md
-#####name: 	Jun Soo Shin
-#####date: 	2 August 2016
-#####note:	Final project for the Probabilistic Programming Praktikum class.
+####Title: 	README.md
+####Name: 	Jun Soo Shin
+####Date: 	2 August 2016
+####purpose:	Final project for the Probabilistic Programming Praktikum class.
 
 ## Notes:
 - In order to limit the number of different scenarios, it is currently 
@@ -38,42 +38,56 @@ mark.
 - General help from Yufei Cai, M. Phil, University of Tübingen
 
 - Overall guide and inspiration
-	<http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>
-	<http://www.fangraphs.com/blogs/instagraphs/daily-projections-by-sabersim-on-fangraphs/>
+
+<http://www.hardballtimes.com/10-lessons-i-learned-from-creating-a-baseball-simulator/>
+
+<http://www.fangraphs.com/blogs/instagraphs/daily-projections-by-sabersim-on-fangraphs/>
 
 - The Odds Ratio Method
-	<http://www.insidethebook.com/ee/index.php/site/comments/the_odds_ratio_method/>
+
+<http://www.insidethebook.com/ee/index.php/site/comments/the_odds_ratio_method/>
 
 - 2015 MLB Batting and league statistics
-	<http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=y&type=0&season=2015&month=0&season1=2015&ind=0&team=0&rost=0&age=0&filter=&players=0>
-	<http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=0&season=2015&month=0&season1=2015&ind=0&team=0,ss&rost=0&age=0&filter=&players=0>
+
+<http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=y&type=0&season=2015&month=0&season1=2015&ind=0&team=0&rost=0&age=0&filter=&players=0>
+
+<http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=0&season=2015&month=0&season1=2015&ind=0&team=0,ss&rost=0&age=0&filter=&players=0>
 
 - 2015 MLB Pitching statistics (player batting against section)
-	<http://www.baseball-reference.com/leagues/MLB/2015-batting-pitching.shtml>
+
+<http://www.baseball-reference.com/leagues/MLB/2015-batting-pitching.shtml>
 
 - 2015 MLB Baserunning on hits statistics
-	<http://www.baseball-reference.com/leagues/MLB/2015-baserunning-batting.shtml>
+
+<http://www.baseball-reference.com/leagues/MLB/2015-baserunning-batting.shtml>
 
 - 2011-2014 MLB Tag from third on flyouts statistics
-	<https://malter61.shinyapps.io/BaseballStats/>
+
+<https://malter61.shinyapps.io/BaseballStats/>
 
 - 2004-2012 MLB Runners scoring from third with less than two outs
-	<http://www.azsnakepit.com/2013/3/13/4097416/scoring-runner-third-less-than-two-outs-skill>
+
+<http://www.azsnakepit.com/2013/3/13/4097416/scoring-runner-third-less-than-two-outs-skill>
 
 - 2011-2013 MLB Data on run probability when bases are loaded
-	<http://stats.seandolinar.com/pirates-bases-loaded-no-outs-no-runs/>
+
+<http://stats.seandolinar.com/pirates-bases-loaded-no-outs-no-runs/>
 
 - Processing a csv file in Scala
-	<http://alvinalexander.com/scala/csv-file-how-to-process-open-read-parse-in-scala>
+
+<http://alvinalexander.com/scala/csv-file-how-to-process-open-read-parse-in-scala>
 
 - Replacing characters in a string
-	<http://stackoverflow.com/questions/21261737/replacing-characters-in-a-string-in-scala>
+
+<http://stackoverflow.com/questions/21261737/replacing-characters-in-a-string-in-scala>
 
 - Splitting a string
-	<http://alvinalexander.com/scala/scala-split-string-example>
+
+<http://alvinalexander.com/scala/scala-split-string-example>
 
 - How to use the break method
-	<http://alvinalexander.com/scala/break-continue-for-while-loops-in-scala-examples-how-to>
+
+<http://alvinalexander.com/scala/break-continue-for-while-loops-in-scala-examples-how-to>
 
 
 ## Things to be implemented in the future:
