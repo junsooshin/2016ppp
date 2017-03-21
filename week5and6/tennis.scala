@@ -81,17 +81,3 @@ object tennisExercise {
 		algorithm.kill()
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

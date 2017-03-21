@@ -254,11 +254,12 @@ object PrinterProblem {
         println("Probability of the evidence that a print result is poor: " +
                 ProbEvidenceSampler.computeProbEvidence(100000, evidence))
         println()
+        println("Probability that print result is poor: " + VariableElimination.probability(printResultSummary, 'poor))
     }
 
     def main(args: Array[String]) {
-        part1()
-        part2()
+        // part1()
+        // part2()
         part3()
     }
 }
