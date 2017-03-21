@@ -1,7 +1,7 @@
 # Probabilistic Programming Praktikum
 2016 Summer Semester, University of Tübingen
 
-# Brief Introduction
+## Brief Introduction
 The course was designed for students to practice probabilistic programming
 in Figaro programming language. Every two weeks I chose certain exercises in
 the textbook as homework.

@@ -1,12 +1,8 @@
-## Baseball Game Simulator
-
-Title: README.md
+# Baseball Game Simulator
 
 Name: Jun Soo Shin
-
 Date: 2 August 2016
-
-purpose: Final project for the Probabilistic Programming Praktikum class.
+Purpose: Final project for the Probabilistic Programming Praktikum class.
 
 ## Notes:
 - In order to limit the number of different scenarios, it is currently 
