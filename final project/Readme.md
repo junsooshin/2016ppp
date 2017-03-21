@@ -1,7 +1,9 @@
 # Baseball Game Simulator
 
 Name: Jun Soo Shin
+
 Date: 2 August 2016
+
 Purpose: Final project for the Probabilistic Programming Praktikum class.
 
 ## Notes:
