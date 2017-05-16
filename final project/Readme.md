@@ -90,6 +90,13 @@ mark.
 
    <http://alvinalexander.com/scala/break-continue-for-while-loops-in-scala-examples-how-to>
 
+- Figaro Quick Start Guide
+
+   <https://www.cra.com/sites/default/files/pdf/Figaro_Quick_Start_Guide.pdf>
+
+- Placing Excel files in right place
+
+   <http://stackoverflow.com/questions/19871955/java-io-filenotfoundexception-the-system-cannot-find-the-file-specified>
 
 ## Things to be implemented in the future:
 Things that I might be able to implement are pitcher management and more
